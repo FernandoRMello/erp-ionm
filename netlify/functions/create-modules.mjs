@@ -1,39 +1,35 @@
 import { neon } from '@netlify/neon';
+import { Context } from "@netlify/functions";
+
 const sql = neon(process.env.NETLIFY_DATABASE_URL);
 
-export const handler = async (event) => {
-    if (event.httpMethod !== 'POST') {
-        return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
+export default async (req: Request, context: Context) => {
+    if (req.method !== 'POST') {
+        return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { status: 405, headers: { 'Content-Type': 'application/json' } });
     }
 
     try {
-        const moduleData = JSON.parse(event.body);
-        const {
-            module_name,
-            description,
-            version,
-            monthly_cost_brl,
-            allowed_user_types = [], // Garante que seja um array
-            applicable_business_branches = [] // Garante que seja um array
+        const moduleData = await req.json();
+        const { 
+            module_name, 
+            description, 
+            version, 
+            monthly_cost_brl, 
+            tags, 
+            allowed_user_types, 
+            applicable_business_branches 
         } = moduleData;
 
-        // O Neon converte arrays JS para o tipo de array do PostgreSQL
         await sql`
-            INSERT INTO modules (module_name, description, version, monthly_cost_brl, allowed_user_types, applicable_business_branches)
-            VALUES (${module_name}, ${description}, ${version}, ${monthly_cost_brl}, ${allowed_user_types}, ${applicable_business_branches});
+            INSERT INTO modules (module_name, description, version, monthly_cost_brl, tags, allowed_user_types, applicable_business_branches) 
+            VALUES (${module_name}, ${description}, ${version}, ${monthly_cost_brl}, ${tags}, ${allowed_user_types}, ${applicable_business_branches});
         `;
-
-        return {
-            statusCode: 201,
-            body: JSON.stringify({ success: true, message: 'Módulo criado com sucesso!' })
-        };
+        
+        return new Response(JSON.stringify({ success: true, message: 'Módulo criado com sucesso!' }), { status: 201, headers: { 'Content-Type': 'application/json' } });
 
     } catch (error) {
         console.error('Erro ao criar módulo:', error);
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ error: 'Falha ao criar módulo no servidor.', details: error.message })
-        };
+        return new Response(JSON.stringify({ error: 'Erro no servidor ao criar módulo.', details: error.message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
 };
 
