@@ -1,8 +1,8 @@
 {
-  "name": "ionm-erp-netlify",
+  "name": "ionm-erp-functions",
   "version": "1.0.0",
-  "description": "Funções serverless para o ERP IONM no Netlify.",
   "dependencies": {
+    "@netlify/functions": "^2.0.0",
     "@netlify/neon": "^0.1.0"
   }
 }
