@@ -1,6 +1,5 @@
 import { neon } from '@netlify/neon';
 import { createHash } from 'crypto';
-import { Context } from "@netlify/functions";
 
 const sql = neon(process.env.NETLIFY_DATABASE_URL);
 
@@ -9,7 +8,7 @@ function hashPassword(password) {
     return createHash('sha256').update(password).digest('hex');
 }
 
-export default async (req: Request, context: Context) => {
+export default async (req, context) => {
     if (req.method !== 'POST') {
         return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { status: 405, headers: { 'Content-Type': 'application/json' } });
     }

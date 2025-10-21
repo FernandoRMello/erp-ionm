@@ -1,9 +1,8 @@
 import { neon } from '@netlify/neon';
-import { Context } from "@netlify/functions";
 
 const sql = neon(process.env.NETLIFY_DATABASE_URL);
 
-export default async (req: Request, context: Context) => {
+export default async (req, context) => {
     if (req.method !== 'POST') {
         return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { status: 405, headers: { 'Content-Type': 'application/json' } });
     }
