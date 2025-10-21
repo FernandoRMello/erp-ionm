@@ -1,0 +1,55 @@
+<h3 class="text-2xl font-bold mb-4">Gestão de Vendas (CRM)</h3>
+
+<!-- Card para Cadastro de Cliente -->
+<div class="bg-white p-6 rounded-lg shadow mb-6">
+    <h4 class="font-bold mb-4 text-lg border-b pb-2">Cadastrar Novo Cliente/Lead</h4>
+    <form id="form-novo-cliente" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Nome do Cliente</label>
+            <input type="text" placeholder="Ex: Maria da Silva" class="mt-1 w-full p-2 border rounded-md">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700">E-mail</label>
+            <input type="email" placeholder="maria.silva@email.com" class="mt-1 w-full p-2 border rounded-md">
+        </div>
+        <div>
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full">Adicionar Cliente</button>
+        </div>
+    </form>
+</div>
+
+<!-- Card para Funil de Vendas -->
+<div class="bg-white p-6 rounded-lg shadow">
+    <h4 class="font-bold mb-4 text-lg border-b pb-2">Funil de Vendas</h4>
+    <div class="grid grid-cols-4 gap-4 mt-4">
+        <!-- Colunas do Kanban -->
+        <div class="bg-gray-100 p-4 rounded">
+            <h5 class="font-bold mb-2 text-center">Prospect</h5>
+            <!-- Card de Exemplo -->
+            <div class="bg-white p-3 rounded shadow-sm mb-2">
+                <p class="font-semibold">Empresa X</p>
+                <p class="text-sm text-gray-600">Contato: Carlos</p>
+            </div>
+        </div>
+        <div class="bg-gray-100 p-4 rounded">
+            <h5 class="font-bold mb-2 text-center">Qualificação</h5>
+             <div class="bg-white p-3 rounded shadow-sm mb-2">
+                <p class="font-semibold">Empresa Y</p>
+                <p class="text-sm text-gray-600">Contato: Ana</p>
+            </div>
+        </div>
+        <div class="bg-gray-100 p-4 rounded">
+            <h5 class="font-bold mb-2 text-center">Proposta</h5>
+             <div class="bg-white p-3 rounded shadow-sm mb-2">
+                <p class="font-semibold">Empresa Z</p>
+                <p class="text-sm text-gray-600">Contato: Pedro</p>
+            </div>
+        </div>
+        <div class="bg-gray-100 p-4 rounded">
+            <h5 class="font-bold mb-2 text-center">Fechamento</h5>
+        </div>
+    </div>
+</div>
+
+<!-- Seção de Relatórios -->
+<div id="report-section-container"></div>
