@@ -2,6 +2,11 @@
 Short, actionable guidance for AI coding agents working on this repository.
 Focus: what an agent needs to be immediately productive (architecture, conventions,
 API shapes, hotspots, and quirks discovered in the codebase).
+```instructions
+<!--
+Short, actionable guidance for AI coding agents working on this repository.
+Focus: what an agent needs to be immediately productive (architecture, conventions,
+API shapes, hotspots, and quirks discovered in the codebase).
 -->
 
 # Copilot / AI agent instructions — ERP IONM (Netlify)
@@ -9,47 +14,74 @@ API shapes, hotspots, and quirks discovered in the codebase).
 Purpose: give an AI coding agent the minimal, high‑value facts and examples so changes are safe and predictable.
 
 - Top-level architecture
-  - Frontend: single-file SPA at `index.html`. It's a lightweight client-side app (no build step) that uses fetch to `/api/<endpoint>`.
-  - Backend: Netlify serverless functions located in `netlify/functions/*.mjs`. Each `.mjs` file maps to a runtime endpoint `/api/<filename-without-.mjs>` (see `netlify.toml` redirect).
-  - Database: functions use `@netlify/neon` and expect `process.env.NETLIFY_DATABASE_URL` (Postgres). SQL is executed via the tagged template `sql` exported by `neon()`.
+  - Frontend: single-file SPA at `index.html`. No build step; UI is pure HTML/JS/CSS and fetches `/api/<endpoint>` for data.
+  - Backend: Netlify serverless functions in `netlify/functions/*.mjs`. Each file maps to `/api/<filename-without-.mjs>` via `netlify.toml` redirects.
+  - Database: functions use `@netlify/neon` with `process.env.NETLIFY_DATABASE_URL` (Postgres). SQL uses the `sql` tagged template returned by `neon()`.
 
-- Quick dev/run notes (discoverable but not present as scripts)
-  - Install deps: run `npm install` (repository has a `package.json` with dependency `@netlify/neon`).
-  - To run functions + frontend locally prefer the Netlify CLI: `netlify dev` (set `NETLIFY_DATABASE_URL` in your environment to test real DB calls).
-  - The `index.html` includes a client-side mock (`MOCK_DB`) used by the UI preview. The mock is enabled when `window.location.protocol === 'blob:'`. If you need to force it, toggle the `useMockApi` variable in the file.
+- Quick dev/run notes
+  - Install deps: `npm install` (see `package.json`).
+  - Local dev: prefer `netlify dev` (Netlify CLI). Set `NETLIFY_DATABASE_URL` in your shell before running to test DB-backed flows.
+  - The UI contains a built-in mock DB (`MOCK_DB`) and a `useMockApi` toggle. The mock is active when `window.location.protocol === 'blob:'`. Use the mock for quick UI iterations.
+
+  Note: functions rely on `NETLIFY_DATABASE_URL` at runtime. Do not commit credentials; set the env var in your shell before `netlify dev`.
 
 - Naming and routing conventions
   - Function filename → API route: `netlify/functions/login-user.mjs` → `/api/login-user`.
-  - Client-side code calls `/api/<name>` (e.g. `api.post('login-user', body)` maps to `/api/login-user`). Keep this mapping when renaming endpoints.
+  - Client-side helper calls use short names: `api.post('login-user', body)` → `/api/login-user`.
+
+  Be aware: some filenames are slightly misleading — e.g. `get-user.mjs` returns a list of users. Inspect file contents before renaming.
 
 - Important files to reference
-  - `index.html` — single-file UI and the mock backend (MOCK_DB). Shows the client shapes used by the UI (forms, payload keys).
+  - `index.html` — single-file UI and the mock backend (shapes used by UI forms and requests).
   - `netlify/functions/*.mjs` — server handlers using `@netlify/neon` (examples: `login-user.mjs`, `create-user.mjs`, `get-companies.mjs`).
-  - `netlify.toml` — functions directory, `esbuild` bundler and `external_node_modules = ["@netlify/neon"]`.
+  - `netlify.toml` — redirect rules, `esbuild` bundler and `external_node_modules = ["@netlify/neon"]`.
+  - `modules/` — HTML fragments loaded into the user workspace (e.g. `modules/pdv.html`).
 
 - API surface (derived from filenames)
-  - GET: `get-dashboard-data`, `get-companies`, `get-users`, `get-modules`, `get-company-details`, `get-subscriptions-by-company`, `get-user`
+  - GET: `get-dashboard-data`, `get-companies`, `get-user` (returns users list), `get-modules`, `get-company-details`, `get-subscriptions-by-company`
   - POST: `login-user`, `create-company`, `create-user`, `create-module`, `update-company`, `update-subscriptions`, `renew-contract`
-  - Example: `login-user` expects { login_user, password } and returns `{ user, permittedModules }` on success. See `netlify/functions/login-user.mjs`.
+  - Example: `login-user` expects { login_user, password } and returns `{ user, permittedModules }`. See `netlify/functions/login-user.mjs` for SQL examples using `ANY()` with Postgres arrays.
 
 - Patterns & conventions an agent must preserve
-  - Functions are ESM `.mjs` files that export a default async handler: `export default async (req) => { ... }` and return `new Response(JSON.stringify(...), { status })`.
-  - Database queries use `sql\\`...\\`` (neon tagged template). Keep template parameters inside `${}` — do not build SQL via string concatenation.
-  - Postgres arrays are used (e.g. `allowed_user_types`); queries use `ANY()` in SQL (see `login-user.mjs`). When inserting/updating, ensure arrays are stored in a Postgres-friendly format.
-  - Error responses follow `{ error: '...' }` and appropriate HTTP status codes (400, 401, 404, 500). Follow the same shape for consistency.
+  - Functions are ESM `.mjs`. Two handler styles are present:
+    - Lambda-style: `export const handler = async (event) => { return { statusCode, body } }` (example: `create-company.mjs`).
+    - Fetch/edge-style: `export default async (req) => { const body = await req.json(); return new Response(...) }` (examples: `login-user.mjs`, `get-companies.mjs`).
+    Match the local file style when editing or run the function locally to verify.
+  - DB queries use `sql` tagged templates (neon). Always parameterize values using `${}` inside the template to avoid SQL injection.
+  - Postgres arrays are used (e.g. `allowed_user_types`) and checked with `ANY()` in SQL. When inserting arrays from JS, pass JS arrays so `neon` maps them correctly.
+  - Error responses use JSON: `{ error: '...' }` with appropriate HTTP status codes.
+
+  Note: a few files contain accidental TypeScript-style artifacts or different hashing approaches; see 'quirks' below.
 
 - Known quirks and hotspots (must call out to avoid regressions)
-  - create-company mismatch: `netlify/functions/create-company.mjs` currently contains logic to renew a contract (accepts `{ companyId, renewalPeriodDays }`) — not a create flow. The frontend expects `create-company` to create a new company (see `index.html` which posts `create-company` from the company form). Investigate and reconcile endpoints before refactoring or deleting files.
-  - Password handling is simulated: functions set `password_hash = 'hashed_' + password` (placeholder). Real work: replace with bcrypt (or equivalent) when implementing real auth; remember to update both creation and login flows to use the real hash and verification.
-  - Client mock vs real API: `index.html` contains `mockApi` logic for local preview. The production code uses `/api/*` routes. When editing UI logic, check both the mock implementation (for quick UI tests) and server handlers (for real integration).
+  - Handler style inconsistency: some functions export `handler` (Lambda style) while others export a default async function. Both run on Netlify, but be consistent when adding files.
+  - TypeScript annotations inside `.mjs`: `create-user.mjs` imports `Context` and uses `req: Request, context: Context` — these are TS annotations and must be removed for Node runtime. Fix these before deploying.
+  - Filename/content mismatches:
+    - `get-user.mjs` returns multiple users (plural). Rename carefully or adjust client calls.
+  - Password hashing is inconsistent:
+    - `login-user.mjs` currently compares against `hashed_${password}` (placeholder).
+    - `create-user.mjs` hashes using `crypto.createHash('sha256')`.
+    Treat these as placeholders: if implementing real auth, update both create and login functions and the client expectations.
 
-- Small implementation guidance for agents
-  - When adding or changing endpoints, update both: `netlify/functions/<file>.mjs` and any client usage in `index.html` (search for `api.post('...')` or `api.get('...')`).
-  - Keep SQL parameterization via the `sql` template; prefer returning structured objects, not HTML, from functions.
-  - When adding DB fields used by the frontend, prefer backward-compatible changes (nullable/optional) and add defensive checks in both functions and `index.html` (the UI expects certain fields like `nome_fantasia`, `company_id`, `user_type`).
+- Practical guidance when editing
+  - Update client calls in `index.html` when adding/changing endpoints (search `api.post('...')` / `api.get('...')`).
+  - Keep DB schema changes backward-compatible where possible; also update the in-browser `MOCK_DB` to mirror shape changes so the UI mock stays useful.
+  - When adding dependencies that aren't provided by Netlify, either bundle them with `esbuild` or mark them carefully and test with `netlify dev`.
+  - When changing SQL, run `netlify dev` with a test DB and exercise the UI flows that call the modified endpoints.
 
-- Environment and security notes
-  - The runtime expects `NETLIFY_DATABASE_URL` in environment variables. Do not commit DB credentials. Local dev: export that env var in your shell before running `netlify dev`.
-  - `netlify.toml` marks `@netlify/neon` as external — when adding new native modules, confirm Netlify runtime availability or include them in the bundle.
+- Quick examples from the codebase
+  - SQL parameterization example (do this style):
+    const result = await sql`SELECT id, name FROM users WHERE login_user = ${login_user} AND password_hash = ${password_hash};`
+  - Array check example used in `login-user.mjs`:
+    AND ${user.user_type} = ANY(m.allowed_user_types)
+  - Client call example from `index.html`:
+    const { user, permittedModules } = await api.post('login-user', { login_user: login, password });
 
-If any section is unclear or you want me to (a) reconcile `create-company` ⇄ frontend usage, (b) add simple npm scripts for `dev`/`start`, or (c) implement bcrypt-based password hashing across functions, tell me which and I will update the repo accordingly.
+- Environment & security notes
+  - `NETLIFY_DATABASE_URL` must be set in CI and local dev for DB-backed functions.
+  - Do not commit secrets. Use Netlify environment variables for production.
+  - `netlify.toml` marks `@netlify/neon` as external — when adding native modules, confirm runtime availability or include them in the bundle.
+
+If any section is unclear or you want me to (a) remove TypeScript annotations from `.mjs` files and standardize handlers, (b) add npm scripts for `dev`/`start` (e.g. `npm run dev` calling `netlify dev`), or (c) implement bcrypt-based password hashing and update login flows, tell me which and I will update the repo accordingly.
+
+```

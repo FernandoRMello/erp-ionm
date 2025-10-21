@@ -17,7 +17,6 @@
         }
         .loader { border-top: 2px solid #3498db; }
         .loader-white { border-top: 2px solid #fff; display: inline-block; }
-        .page-content { display: none; }
         #main-nav a.active, #user-main-nav a.active { background-color: #eef2ff; color: #4f46e5; font-weight: 600; }
         #user-main-nav a.active { background-color: #4f46e5; color: white; }
         .modal-overlay {
@@ -30,7 +29,7 @@
         .modal-content {
             background-color: white; padding: 2rem; border-radius: 0.75rem;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            width: 100%; max-width: 600px;
+            width: 90%; max-width: 600px;
             transform: scale(0.95); transition: transform 0.3s ease;
         }
         .modal-overlay.visible .modal-content { transform: scale(1); }
@@ -52,19 +51,28 @@
         
         <!-- PAINEL DE ADMINISTRAÇÃO -->
         <div id="admin-panel-section" style="display: none;">
-            <div class="flex h-screen bg-white">
-                <aside class="w-64 bg-slate-50 border-r border-slate-200 flex flex-col">
+            <div class="relative min-h-screen md:flex">
+                <!-- Overlay para menu mobile -->
+                <div id="admin-sidebar-overlay" class="fixed inset-0 bg-black/60 z-20 md:hidden" style="display: none;"></div>
+
+                <!-- Botão de Menu Mobile (Hambúrguer) -->
+                <div class="bg-white text-gray-900 flex justify-between md:hidden sticky top-0 z-10 shadow">
+                    <a href="#" class="block p-4 font-bold text-indigo-600">Gestão IONM</a>
+                    <button id="admin-menu-button" class="p-4 focus:outline-none focus:bg-gray-200">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    </button>
+                </div>
+
+                <aside id="admin-sidebar" class="w-64 bg-slate-50 border-r border-slate-200 flex-col fixed inset-y-0 left-0 z-30 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-200 ease-in-out">
                     <div class="p-6 text-center"><h1 class="text-2xl font-bold text-indigo-600">Gestão IONM</h1></div>
                     <nav id="main-nav" class="flex-1 px-4 space-y-1">
                         <a href="#" data-target="dashboard-main-section" class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-200 transition-colors">Dashboard</a>
-                        
                         <div class="pt-4 pb-2">
                             <h3 class="nav-heading">Cadastros</h3>
                             <a href="#" data-target="empresas-main-section" class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-200 transition-colors">Empresas</a>
                             <a href="#" data-target="usuarios-main-section" class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-200 transition-colors">Usuários</a>
                             <a href="#" data-target="modulos-main-section" class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-200 transition-colors">Módulos</a>
                         </div>
-
                         <div class="pt-4 pb-2">
                             <h3 class="nav-heading">Gerencial</h3>
                             <a href="#" data-target="financeiro-main-section" class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-200 transition-colors">Financeiro</a>
@@ -74,7 +82,7 @@
                     </nav>
                     <div class="p-4 border-t border-slate-200"><button id="logout-button" class="w-full text-left bg-red-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-red-600 transition duration-300">Sair</button></div>
                 </aside>
-                <main id="content-area" class="flex-1 p-8 overflow-y-auto bg-slate-100">
+                <main id="content-area" class="flex-1 p-4 md:p-8 overflow-y-auto bg-slate-100">
                     <div id="dashboard-main-section" class="page-content"></div>
                     <div id="empresas-main-section" class="page-content"></div>
                     <div id="usuarios-main-section" class="page-content"></div>
@@ -88,8 +96,17 @@
 
         <!-- PAINEL DO USUÁRIO (ERP) -->
         <div id="user-erp-panel-section" style="display: none;">
-             <div class="flex h-screen bg-white">
-                <aside class="w-64 bg-indigo-800 text-white flex flex-col">
+             <div class="relative min-h-screen md:flex">
+                <div id="user-sidebar-overlay" class="fixed inset-0 bg-black/60 z-20 md:hidden" style="display: none;"></div>
+                
+                <div class="bg-indigo-800 text-white flex justify-between md:hidden sticky top-0 z-10">
+                    <a href="#" class="block p-4 font-bold">ERP IONM</a>
+                    <button id="user-menu-button" class="p-4 focus:outline-none focus:bg-indigo-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    </button>
+                </div>
+
+                <aside id="user-sidebar" class="w-64 bg-indigo-800 text-white flex-col fixed inset-y-0 left-0 z-30 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-200 ease-in-out">
                     <div class="p-6 text-center"><h1 class="text-2xl font-bold">ERP IONM</h1></div>
                     <nav id="user-main-nav" class="flex-1 px-4 space-y-2"></nav>
                     <div class="p-4 border-t border-indigo-700">
@@ -97,7 +114,7 @@
                         <button id="user-logout-button" class="w-full text-left bg-red-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-red-600 transition duration-300">Sair</button>
                     </div>
                 </aside>
-                <main id="user-content-area" class="flex-1 p-8 overflow-y-auto bg-slate-100"></main>
+                <main id="user-content-area" class="flex-1 p-4 md:p-8 overflow-y-auto bg-slate-100"></main>
              </div>
         </div>
         <div id="modal-container"></div>
@@ -201,7 +218,7 @@
             if (reportId === 'stock_value') { headers = ['ID Produto', 'Nome', 'Quantidade', 'Custo Unit.', 'Valor Total']; rows = [ ['001', 'Produto A', 100, '10,50', '1.050,00'], ['002', 'Produto B', 50, '25,00', '1.250,00'], ['003', 'Produto C', 200, '5,75', '1.150,00'] ]; } 
             else if (reportId === 'stock_abc') { headers = ['Produto', 'Valor Total', '% Acumulado', 'Classificação']; rows = [ ['Produto B', '1.250,00', '36.23%', 'A'], ['Produto C', '1.150,00', '69.57%', 'A'], ['Produto A', '1.050,00', '100.00%', 'B'] ]; } 
             else if (reportId === 'cash_flow') { headers = ['Data', 'Descrição', 'Entrada', 'Saída', 'Saldo']; rows = [ ['20/10/2025', 'Venda PDV', '1.500,00', '', '1.500,00'], ['20/10/2025', 'Pagto Fornecedor X', '', '800,00', '700,00'], ['21/10/2025', 'Venda Online', '950,00', '', '1.650,00'] ]; }
-            let html = `<h3 class="text-2xl font-bold mb-2">${report.name}</h3><p class="text-slate-600 mb-6">${report.description}</p><div class="bg-white p-6 rounded-lg shadow"><div class="flex justify-between items-center mb-4"><div class="flex gap-4 items-center"><label>Período:</label><input type="date" class="p-2 border rounded"><span>até</span><input type="date" class="p-2 border rounded"><button class="bg-gray-600 text-white px-4 py-2 rounded">Filtrar</button></div><div><button class="bg-green-700 text-white px-4 py-2 rounded">Exportar CSV</button><button class="bg-red-700 text-white px-4 py-2 rounded ml-2">Exportar PDF</button></div></div><div class="overflow-x-auto"><table class="w-full text-left"><thead><tr class="border-b">${headers.map(h => `<th class="p-2">${h}</th>`).join('')}</tr></thead><tbody>${rows.map(row => `<tr>${row.map(cell => `<td class="p-2 border-b">${cell}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`;
+            let html = `<h3 class="text-2xl font-bold mb-2">${report.name}</h3><p class="text-slate-600 mb-6">${report.description}</p><div class="bg-white p-6 rounded-lg shadow"><div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4"><div class="flex flex-col md:flex-row gap-4 items-start md:items-center"><label>Período:</label><input type="date" class="p-2 border rounded"><span>até</span><input type="date" class="p-2 border rounded"><button class="bg-gray-600 text-white px-4 py-2 rounded">Filtrar</button></div><div class="flex gap-2"><button class="bg-green-700 text-white px-4 py-2 rounded">Exportar CSV</button><button class="bg-red-700 text-white px-4 py-2 rounded">Exportar PDF</button></div></div><div class="overflow-x-auto"><table class="w-full text-left"><thead><tr class="border-b">${headers.map(h => `<th class="p-2">${h}</th>`).join('')}</tr></thead><tbody>${rows.map(row => `<tr>${row.map(cell => `<td class="p-2 border-b">${cell}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`;
             document.getElementById('user-content-area').innerHTML = html;
         }
 
@@ -218,31 +235,27 @@
             return `<div class="overflow-x-auto"><table class="w-full text-left">${headerHtml}${bodyHtml}</table></div>`;
         };
 
-        const erpReports = {
-            'Controle de Estoque': [{ id: 'stock_value', name: 'Inventário Valorizado', description: 'Exibe a quantidade e o valor total de cada item em estoque.' }, { id: 'stock_abc', name: 'Curva ABC de Produtos', description: 'Classifica os produtos pela sua importância no faturamento.' }],
-            'Financeiro': [{ id: 'cash_flow', name: 'Fluxo de Caixa Detalhado', description: 'Mostra todas as entradas e saídas de um período.' }, { id: 'pnl', name: 'Demonstrativo de Resultados (DRE)', description: 'Apresenta o lucro ou prejuízo da empresa.' }],
-            'Gestão de Vendas (CRM)': [{ id: 'sales_pipeline', name: 'Funil de Vendas', description: 'Visualiza as oportunidades em cada etapa da negociação.' }]
+        const moduleFileNames = {
+            'Controle de Estoque': 'controle-estoque',
+            'Financeiro': 'financeiro',
+            'Gestão de Vendas (CRM)': 'crm',
+            'Emissão de Notas Fiscais (NF-e)': 'nfe',
+            'Ponto de Venda (PDV)': 'pdv',
+            'Precificação': 'precificacao'
         };
-        const erpModuleTemplates = {
-            'Controle de Estoque': () => { let content = `<h3 class="text-2xl font-bold mb-4">Controle de Estoque</h3><div class="bg-white p-6 rounded-lg shadow"><h4 class="font-bold mb-2">Cadastrar Novo Produto</h4><form class="grid grid-cols-3 gap-4"><div><label>Nome</label><input class="w-full p-2 border rounded"></div><div><label>Quantidade</label><input type="number" class="w-full p-2 border rounded"></div><div class="self-end"><button class="bg-blue-500 text-white p-2 rounded w-full">Adicionar</button></div></form></div>`; if (['ADMINISTRADOR', 'GERENTE'].includes(state.currentUser.user_type)) { content += `<div class="bg-white p-6 rounded-lg shadow mt-6"><h4 class="font-bold mb-4">Relatórios de Estoque</h4><div class="space-y-2">${erpReports['Controle de Estoque'].map(r => `<button data-report-id="${r.id}" data-module="Controle de Estoque" class="report-link text-indigo-600 hover:underline block">${r.name}</button>`).join('')}</div></div>`; } return content; },
-            'Financeiro': () => { let content = `<h3 class="text-2xl font-bold mb-4">Financeiro</h3><div class="bg-white p-6 rounded-lg shadow"><h4 class="font-bold mb-2">Lançar Despesa</h4><p>Funcionalidade em desenvolvimento.</p></div>`; if (['ADMINISTRADOR', 'GERENTE'].includes(state.currentUser.user_type)) { content += `<div class="bg-white p-6 rounded-lg shadow mt-6"><h4 class="font-bold mb-4">Relatórios Financeiros</h4><div class="space-y-2">${erpReports['Financeiro'].map(r => `<button data-report-id="${r.id}" data-module="Financeiro" class="report-link text-indigo-600 hover:underline block">${r.name}</button>`).join('')}</div></div>`; } return content; },
-            'Gestão de Vendas (CRM)': () => `<h3 class="text-2xl font-bold mb-4">Gestão de Vendas (CRM)</h3><div class="bg-white p-6 rounded-lg shadow"><h4 class="font-bold mb-2">Cadastrar Novo Cliente</h4><form class="grid grid-cols-2 gap-4"><div><label>Nome</label><input class="w-full p-2 border rounded"></div><div><label>Email</label><input class="w-full p-2 border rounded"></div><div class="col-span-2"><button class="bg-blue-500 text-white p-2 rounded">Adicionar Cliente</button></div></form></div>`,
-            'Emissão de Notas Fiscais (NF-e)': () => `<h3 class="text-2xl font-bold mb-4">Emissão de NF-e</h3><div class="bg-white p-6 rounded-lg shadow"><h4 class="font-bold mb-2">Emitir Nova Nota</h4><p>Funcionalidade em desenvolvimento.</p></div>`,
-            'Ponto de Venda (PDV)': () => `<h3 class="text-2xl font-bold mb-4">Ponto de Venda (PDV)</h3><div class="bg-white p-6 rounded-lg shadow"><p>Interface do caixa em desenvolvimento.</p></div>`,
-            'Precificação': () => `<h3 class="text-2xl font-bold mb-4">Precificação</h3><div class="bg-white p-6 rounded-lg shadow"><p>Ferramenta de cálculo de preços em desenvolvimento.</p></div>`,
-        };
+
         const pageTemplates = {
-            'dashboard-main-section': async () => { const data = await api.get('get-dashboard-data'); state.dashboardData = data; return `<h2 class="text-3xl font-bold mb-6">Dashboard Gerencial</h2><div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"><div class="bg-white p-6 rounded-xl shadow"><h3 class="text-slate-500">Empresas</h3><p class="text-3xl font-bold mt-2">${data.total_companies}</p></div><div class="bg-white p-6 rounded-xl shadow"><h3 class="text-slate-500">Usuários</h3><p class="text-3xl font-bold mt-2">${data.total_users}</p></div><div class="bg-white p-6 rounded-xl shadow"><h3 class="text-slate-500">Receita Mensal</h3><p class="text-3xl font-bold mt-2 text-green-600">R$ ${data.total_monthly_revenue}</p></div></div><div class="bg-white p-6 rounded-xl shadow mb-8"><h3 class="font-bold text-lg mb-4">Previsão de Faturamento por Dia</h3><div class="flex justify-around text-center">${Object.entries(data.revenue_by_day).map(([d, v]) => `<div><p class="text-sm text-slate-500">Dia ${d}</p><p class="font-bold">R$ ${v}</p></div>`).join('')}</div></div><div class="bg-white p-6 rounded-xl shadow"><h3 class="font-bold text-lg mb-4">Vencimentos Próximos (7 dias)</h3><div>${data.companies_nearing_expiration.length ? data.companies_nearing_expiration.map(c => `<div class="flex justify-between items-center p-3 border-b"><p>${c.nome_fantasia}</p><p class="text-sm text-red-600">Vence: ${new Date(c.contract_end_date).toLocaleDateString('pt-BR',{timeZone:'UTC'})}</p><button class="renew-btn bg-blue-500 text-white px-3 py-1 rounded-lg" data-id="${c.id}" data-name="${c.nome_fantasia}">Renovar</button></div>`).join('') : '<p class="text-slate-500">Nenhum vencimento próximo.</p>'}</div></div>`; },
-            'empresas-main-section': async () => `<div id="empresas-content"><h2 class="text-2xl font-bold mb-6">Gestão de Empresas</h2><div class="grid md:grid-cols-2 gap-6"><button data-page="company-registration-page" class="page-nav-button bg-white p-6 rounded-xl shadow hover:shadow-lg text-left"><h3 class="text-lg font-bold">Cadastrar Empresa</h3></button><button data-page="company-list-page" class="page-nav-button bg-white p-6 rounded-xl shadow hover:shadow-lg text-left"><h3 class="text-lg font-bold">Listar Empresas</h3></button></div></div>`,
-            'usuarios-main-section': async () => `<div id="usuarios-content"><h2 class="text-2xl font-bold mb-6">Gestão de Usuários</h2><div class="grid md:grid-cols-2 gap-6"><button data-page="user-registration-page" class="page-nav-button bg-white p-6 rounded-xl shadow hover:shadow-lg text-left"><h3 class="text-lg font-bold">Cadastrar Usuário</h3></button><button data-page="user-list-page" class="page-nav-button bg-white p-6 rounded-xl shadow hover:shadow-lg text-left"><h3 class="text-lg font-bold">Listar Usuários</h3></button></div></div>`,
-            'modulos-main-section': async () => `<div id="modulos-content"><h2 class="text-2xl font-bold mb-6">Gestão de Módulos</h2><div class="grid md:grid-cols-3 gap-6"><button data-page="module-registration-page" class="page-nav-button bg-white p-6 rounded-xl shadow hover:shadow-lg text-left"><h3 class="text-lg font-bold">Cadastrar Módulo</h3></button><button data-page="module-list-page" class="page-nav-button bg-white p-6 rounded-xl shadow hover:shadow-lg text-left"><h3 class="text-lg font-bold">Listar Módulos</h3></button><button data-page="module-link-page" class="page-nav-button bg-white p-6 rounded-xl shadow hover:shadow-lg text-left"><h3 class="text-lg font-bold">Vincular Módulos</h3></button></div></div>`,
+            'dashboard-main-section': async () => { const data = await api.get('get-dashboard-data'); state.dashboardData = data; return `<h2 class="text-3xl font-bold mb-6">Dashboard Gerencial</h2><div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"><div class="bg-white p-6 rounded-xl shadow"><h3 class="text-slate-500">Empresas</h3><p class="text-3xl font-bold mt-2">${data.total_companies}</p></div><div class="bg-white p-6 rounded-xl shadow"><h3 class="text-slate-500">Usuários</h3><p class="text-3xl font-bold mt-2">${data.total_users}</p></div><div class="bg-white p-6 rounded-xl shadow"><h3 class="text-slate-500">Receita Mensal</h3><p class="text-3xl font-bold mt-2 text-green-600">R$ ${data.total_monthly_revenue}</p></div></div><div class="bg-white p-6 rounded-xl shadow mb-8"><h3 class="font-bold text-lg mb-4">Previsão de Faturamento por Dia</h3><div class="flex flex-wrap justify-around text-center gap-4">${Object.entries(data.revenue_by_day).map(([d, v]) => `<div><p class="text-sm text-slate-500">Dia ${d}</p><p class="font-bold">R$ ${v}</p></div>`).join('')}</div></div><div class="bg-white p-6 rounded-xl shadow"><h3 class="font-bold text-lg mb-4">Vencimentos Próximos (7 dias)</h3><div class="overflow-x-auto">${data.companies_nearing_expiration.length ? data.companies_nearing_expiration.map(c => `<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-3 border-b gap-2"><p class="font-semibold">${c.nome_fantasia}</p><p class="text-sm text-red-600">Vence: ${new Date(c.contract_end_date).toLocaleDateString('pt-BR',{timeZone:'UTC'})}</p><button class="renew-btn bg-blue-500 text-white px-3 py-1 rounded-lg w-full sm:w-auto" data-id="${c.id}" data-name="${c.nome_fantasia}">Renovar</button></div>`).join('') : '<p class="text-slate-500">Nenhum vencimento próximo.</p>'}</div></div>`; },
+            'empresas-main-section': async () => `<h2 class="text-2xl font-bold mb-6">Gestão de Empresas</h2><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><button data-page="company-registration-page" class="page-nav-button bg-white p-6 rounded-xl shadow hover:shadow-lg text-left"><h3 class="text-lg font-bold">Cadastrar Empresa</h3></button><button data-page="company-list-page" class="page-nav-button bg-white p-6 rounded-xl shadow hover:shadow-lg text-left"><h3 class="text-lg font-bold">Listar Empresas</h3></button></div>`,
+            'usuarios-main-section': async () => `<h2 class="text-2xl font-bold mb-6">Gestão de Usuários</h2><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><button data-page="user-registration-page" class="page-nav-button bg-white p-6 rounded-xl shadow hover:shadow-lg text-left"><h3 class="text-lg font-bold">Cadastrar Usuário</h3></button><button data-page="user-list-page" class="page-nav-button bg-white p-6 rounded-xl shadow hover:shadow-lg text-left"><h3 class="text-lg font-bold">Listar Usuários</h3></button></div>`,
+            'modulos-main-section': async () => `<h2 class="text-2xl font-bold mb-6">Gestão de Módulos</h2><div class="grid grid-cols-1 md:grid-cols-3 gap-6"><button data-page="module-registration-page" class="page-nav-button bg-white p-6 rounded-xl shadow hover:shadow-lg text-left"><h3 class="text-lg font-bold">Cadastrar Módulo</h3></button><button data-page="module-list-page" class="page-nav-button bg-white p-6 rounded-xl shadow hover:shadow-lg text-left"><h3 class="text-lg font-bold">Listar Módulos</h3></button><button data-page="module-link-page" class="page-nav-button bg-white p-6 rounded-xl shadow hover:shadow-lg text-left"><h3 class="text-lg font-bold">Vincular Módulos</h3></button></div>`,
             'financeiro-main-section': async () => `<h2 class="text-2xl font-bold mb-6">Financeiro</h2><div class="bg-white p-6 rounded-xl shadow"><p>Área para gestão de faturas, assinaturas e pagamentos.</p><p class="mt-4">Funcionalidade em desenvolvimento.</p></div>`,
             'comercial-main-section': async () => `<h2 class="text-2xl font-bold mb-6">Comercial</h2><div class="bg-white p-6 rounded-xl shadow"><p>Área para gestão de propostas, contratos e funil de vendas da plataforma.</p><p class="mt-4">Funcionalidade em desenvolvimento.</p></div>`,
             'relatorios-main-section': async () => `<h2 class="text-2xl font-bold mb-6">Gestão de Relatórios</h2><div class="bg-white p-6 rounded-xl shadow"><p>Esta área será usada para cadastrar novas definições de relatórios que aparecerão para os usuários nos módulos do ERP.</p><p class="mt-4">Funcionalidade em desenvolvimento.</p></div>`,
-            'company-registration-page': async () => `<div><button data-page="empresas-main-section" class="page-nav-button mb-4 text-sm text-indigo-600 hover:underline">&larr; Voltar</button><div class="bg-white p-8 rounded-xl shadow-lg"><h3 class="text-xl font-bold mb-6">Nova Empresa</h3><form id="company-form" class="grid md:grid-cols-2 gap-6"><div><label>CNPJ</label><div class="relative"><input type="text" id="cnpj" name="cnpj" class="w-full mt-1 p-2 border rounded-lg" required></div></div><div><label>Razão Social</label><input type="text" id="razao_social" name="razao_social" class="w-full mt-1 p-2 border rounded-lg bg-slate-100" readonly></div><div><label>Nome Fantasia</label><input type="text" id="nome_fantasia" name="nome_fantasia" class="w-full mt-1 p-2 border rounded-lg bg-slate-100"></div><div class="md:col-span-2"><label>Endereço</label><input type="text" id="address" name="address" class="w-full mt-1 p-2 border rounded-lg bg-slate-100" readonly></div><div><label>I.E.</label><input type="text" name="ie" class="w-full mt-1 p-2 border rounded-lg"></div><div><label>Tipo</label><select name="company_type" class="w-full mt-1 p-2 border rounded-lg" required><option value="">Selecione...</option><option>MEI</option><option>LTDA</option></select></div><div><label>Ramo</label><select name="business_branch" class="w-full mt-1 p-2 border rounded-lg" required><option value="">Selecione...</option><option>COMERCIO</option><option>INDUSTRIA</option><option>SERVICOS</option><option>ATACADISTA</option><option>ONLINE</option></select></div><div><label>Dia Faturamento</label><select name="billing_day" class="w-full mt-1 p-2 border rounded-lg" required><option value="">Selecione...</option><option value="5">5</option><option value="10">10</option><option value="15">15</option><option value="20">20</option><option value="25">25</option></select></div><div class="md:col-span-2 text-right mt-4"><button type="submit" class="bg-indigo-600 text-white font-semibold py-2.5 px-6 rounded-lg">Cadastrar</button></div></form></div></div>`,
-            'user-registration-page': async () => { const companies = await api.get('get-companies'); return `<div><button data-page="usuarios-main-section" class="page-nav-button mb-4 text-sm text-indigo-600 hover:underline">&larr; Voltar</button><div class="bg-white p-8 rounded-xl shadow-lg"><h3 class="text-xl font-bold mb-6">Novo Usuário</h3><form id="user-form" class="grid md:grid-cols-2 gap-4"><div><label>Empresa</label><select name="company_id" required class="w-full p-2 border rounded">${companies.map(c=>`<option value="${c.id}" data-fantasia="${c.nome_fantasia}">${c.nome_fantasia}</option>`).join('')}</select></div><div><label>Nome Completo</label><input name="name" required class="w-full p-2 border rounded"></div><div><label>Email</label><input name="email" type="email" required class="w-full p-2 border rounded"></div><div><label>Nome de Usuário (base)</label><input name="login_user" required class="w-full p-2 border rounded"></div><div><label>Senha</label><input name="password" type="password" required class="w-full p-2 border rounded"></div><div><label>Perfil</label><select name="user_type" required class="w-full p-2 border rounded"><option>ADMINISTRADOR</option><option>GERENTE</option><option>VENDEDOR</option><option>ESTOQUE</option><option>USUARIO</option></select></div><div class="md:col-span-2 bg-slate-50 p-3 rounded-lg"><p class="text-sm text-slate-600">O login final do usuário será: <strong id="final-login-preview" class="text-indigo-600"></strong></p></div><div class="md:col-span-2 text-right"><button type="submit" class="bg-indigo-600 text-white font-semibold p-2 px-4 rounded">Cadastrar Usuário</button></div></form></div></div>`; },
+            'company-registration-page': async () => `<div><button data-page="empresas-main-section" class="page-nav-button mb-4 text-sm text-indigo-600 hover:underline">&larr; Voltar</button><div class="bg-white p-8 rounded-xl shadow-lg"><h3 class="text-xl font-bold mb-6">Nova Empresa</h3><form id="company-form" class="grid grid-cols-1 md:grid-cols-2 gap-6"><div><label>CNPJ</label><div class="relative"><input type="text" id="cnpj" name="cnpj" class="w-full mt-1 p-2 border rounded-lg" required></div></div><div><label>Razão Social</label><input type="text" id="razao_social" name="razao_social" class="w-full mt-1 p-2 border rounded-lg bg-slate-100" readonly></div><div><label>Nome Fantasia</label><input type="text" id="nome_fantasia" name="nome_fantasia" class="w-full mt-1 p-2 border rounded-lg bg-slate-100"></div><div class="md:col-span-2"><label>Endereço</label><input type="text" id="address" name="address" class="w-full mt-1 p-2 border rounded-lg bg-slate-100" readonly></div><div><label>I.E.</label><input type="text" name="ie" class="w-full mt-1 p-2 border rounded-lg"></div><div><label>Tipo</label><select name="company_type" class="w-full mt-1 p-2 border rounded-lg" required><option value="">Selecione...</option><option>MEI</option><option>LTDA</option></select></div><div><label>Ramo</label><select name="business_branch" class="w-full mt-1 p-2 border rounded-lg" required><option value="">Selecione...</option><option>COMERCIO</option><option>INDUSTRIA</option><option>SERVICOS</option><option>ATACADISTA</option><option>ONLINE</option></select></div><div><label>Dia Faturamento</label><select name="billing_day" class="w-full mt-1 p-2 border rounded-lg" required><option value="">Selecione...</option><option value="5">5</option><option value="10">10</option><option value="15">15</option><option value="20">20</option><option value="25">25</option></select></div><div class="md:col-span-2 text-right mt-4"><button type="submit" class="bg-indigo-600 text-white font-semibold py-2.5 px-6 rounded-lg">Cadastrar</button></div></form></div></div>`,
+            'user-registration-page': async () => { const companies = await api.get('get-companies'); return `<div><button data-page="usuarios-main-section" class="page-nav-button mb-4 text-sm text-indigo-600 hover:underline">&larr; Voltar</button><div class="bg-white p-8 rounded-xl shadow-lg"><h3 class="text-xl font-bold mb-6">Novo Usuário</h3><form id="user-form" class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label>Empresa</label><select name="company_id" required class="w-full p-2 border rounded">${companies.map(c=>`<option value="${c.id}" data-fantasia="${c.nome_fantasia}">${c.nome_fantasia}</option>`).join('')}</select></div><div><label>Nome Completo</label><input name="name" required class="w-full p-2 border rounded"></div><div><label>Email</label><input name="email" type="email" required class="w-full p-2 border rounded"></div><div><label>Nome de Usuário (base)</label><input name="login_user" required class="w-full p-2 border rounded"></div><div><label>Senha</label><input name="password" type="password" required class="w-full p-2 border rounded"></div><div><label>Perfil</label><select name="user_type" required class="w-full p-2 border rounded"><option>ADMINISTRADOR</option><option>GERENTE</option><option>VENDEDOR</option><option>ESTOQUE</option><option>USUARIO</option></select></div><div class="md:col-span-2 bg-slate-50 p-3 rounded-lg"><p class="text-sm text-slate-600">O login final do usuário será: <strong id="final-login-preview" class="text-indigo-600"></strong></p></div><div class="md:col-span-2 text-right"><button type="submit" class="bg-indigo-600 text-white font-semibold p-2 px-4 rounded">Cadastrar Usuário</button></div></form></div></div>`; },
             'module-registration-page': async () => `<div><button data-page="modulos-main-section" class="page-nav-button mb-4 text-sm text-indigo-600 hover:underline">&larr; Voltar</button><div class="bg-white p-8 rounded-xl shadow-lg"><h3 class="text-xl font-bold mb-6">Novo Módulo</h3><form id="module-form" class="space-y-4"><div><label>Nome do Módulo</label><input name="module_name" required class="w-full p-2 border rounded"></div><div><label>Descrição</label><textarea name="description" class="w-full p-2 border rounded"></textarea></div><div><label>Versão</label><input name="version" class="w-full p-2 border rounded"></div><div><label>Custo Mensal (R$)</label><input name="monthly_cost_brl" type="number" step="0.01" required class="w-full p-2 border rounded"></div><fieldset><legend>Perfis Permitidos</legend><div>${['ADMINISTRADOR', 'GERENTE', 'VENDEDOR', 'ESTOQUE', 'USUARIO'].map(p=>`<label class="mr-4"><input type="checkbox" name="allowed_user_types" value="${p}"> ${p}</label>`).join('')}</div></fieldset><fieldset><legend>Ramos Aplicáveis</legend><div>${['COMERCIO', 'INDUSTRIA', 'SERVICOS', 'ATACADISTA', 'ONLINE'].map(r=>`<label class="mr-4"><input type="checkbox" name="applicable_business_branches" value="${r}"> ${r}</label>`).join('')}</div></fieldset><div class="text-right"><button type="submit" class="bg-indigo-600 text-white font-semibold p-2 px-4 rounded">Cadastrar Módulo</button></div></form></div></div>`,
-            'module-link-page': async () => { const [companies, modules] = await Promise.all([api.get('get-companies'), api.get('get-modules')]); return `<div><button data-page="modulos-main-section" class="page-nav-button mb-4 text-sm text-indigo-600 hover:underline">&larr; Voltar</button><div class="bg-white p-8 rounded-xl shadow-lg"><h3 class="text-xl font-bold mb-6">Vincular Módulos à Empresa</h3><div><label>Selecione a Empresa</label><select id="company-select-link" class="w-full p-2 border rounded"><option value="">Selecione...</option>${companies.map(c=>`<option value="${c.id}">${c.nome_fantasia}</option>`).join('')}</select></div><div id="modules-checkbox-list" class="mt-4 space-y-2"></div><div class="text-right mt-4"><button id="save-links-btn" class="bg-indigo-600 text-white font-semibold p-2 px-4 rounded hidden">Salvar Vínculos</button></div></div></div>`; },
+            'module-link-page': async () => { const [companies, modules] = await Promise.all([api.get('get-companies'), api.get('get-modules')]); return `<div><button data-page="modulos-main-section" class="page-nav-button mb-4 text-sm text-indigo-600 hover:underline">&larr; Voltar</button><div class="bg-white p-8 rounded-xl shadow-lg"><h3 class="text-xl font-bold mb-6">Vincular Módulos à Empresa</h3><div><label>Selecione a Empresa</label><select id="company-select-link" class="w-full p-2 border rounded"><option value="">Selecione...</option>${companies.map(c=>`<option value="${c.id}">${c.nome_fantasia}</option>`).join('')}</select></div><div id="modules-checkbox-list" class="mt-4 space-y-2"></div><div class="text-right mt-4"><button id="save-links-btn" class="bg-indigo-600 text-white font-semibold p-2 px-4 rounded hidden disabled:bg-indigo-400">Salvar Vínculos</button></div></div></div>`; },
             'company-list-page': async () => { const companies = await api.get('get-companies'); return `<div><button data-page="empresas-main-section" class="page-nav-button mb-4 text-sm text-indigo-600 hover:underline">&larr; Voltar</button><div class="bg-white p-8 rounded-xl shadow-lg"><h3 class="text-xl font-bold mb-6">Empresas Cadastradas</h3>${createTableHTML(['ID', 'Nome Fantasia'], companies.map(c => ({id: c.id, data: [c.id, c.nome_fantasia]})), [{label: 'Editar', class: 'edit-company-btn bg-gray-500 text-white px-3 py-1 rounded-lg'}])}</div></div>`; },
             'user-list-page': async () => { const users = await api.get('get-users'); return `<div><button data-page="usuarios-main-section" class="page-nav-button mb-4 text-sm text-indigo-600 hover:underline">&larr; Voltar</button><div class="bg-white p-8 rounded-xl shadow-lg"><h3 class="text-xl font-bold mb-6">Usuários Cadastrados</h3>${createTableHTML(['Nome', 'Usuário', 'Empresa', 'Perfil'], users.map(u => ({id: u.id, data: [u.name, u.login_user, u.company_name, u.user_type]})))}</div></div>`; },
             'module-list-page': async () => { const modules = await api.get('get-modules'); return `<div><button data-page="modulos-main-section" class="page-nav-button mb-4 text-sm text-indigo-600 hover:underline">&larr; Voltar</button><div class="bg-white p-8 rounded-xl shadow-lg"><h3 class="text-xl font-bold mb-6">Módulos Cadastrados</h3>${createTableHTML(['ID', 'Nome do Módulo'], modules.map(m => ({id: m.id, data: [m.id, m.module_name]})))}</div></div>`; },
@@ -282,7 +295,22 @@
             const target = e.target;
             const navLink = target.closest('#main-nav a'), navButton = target.closest('.page-nav-button'), editButton = target.closest('.edit-company-btn'), renewButton = target.closest('.renew-btn'), saveLinksButton = target.closest('#save-links-btn'), erpModuleLink = target.closest('.erp-module-link'), reportLink = target.closest('.report-link'), cancelButton = target.closest('#cancel-btn');
 
-            if (target.id === 'logout-button' || target.id === 'user-logout-button') { handleLogout(); }
+            if (target.id === 'logout-button' || target.id === 'user-logout-button' || target.id === 'admin-sidebar-overlay' || target.id === 'user-sidebar-overlay') {
+                if (target.id.includes('logout')) handleLogout();
+                document.getElementById('admin-sidebar').classList.add('-translate-x-full');
+                document.getElementById('admin-sidebar-overlay').style.display = 'none';
+                document.getElementById('user-sidebar').classList.add('-translate-x-full');
+                document.getElementById('user-sidebar-overlay').style.display = 'none';
+            }
+            if(target.closest('#admin-menu-button')) {
+                document.getElementById('admin-sidebar').classList.remove('-translate-x-full');
+                document.getElementById('admin-sidebar-overlay').style.display = 'block';
+            }
+            if(target.closest('#user-menu-button')) {
+                document.getElementById('user-sidebar').classList.remove('-translate-x-full');
+                document.getElementById('user-sidebar-overlay').style.display = 'block';
+            }
+
             if (navLink) { e.preventDefault(); navigateToSection(navLink.dataset.target); }
             if (navButton) { 
                 e.preventDefault(); 
@@ -298,7 +326,7 @@
                 const { id } = editButton.dataset;
                 const company = await api.get(`get-company-details?id=${id}`);
                 const ramos = ['COMERCIO', 'INDUSTRIA', 'SERVICOS', 'ATACADISTA', 'ONLINE'], tipos = ['MEI', 'LTDA'], dias = [5, 10, 15, 20, 25];
-                const modalContent = `<h3 class="text-xl font-bold mb-6">Editar Empresa</h3><form id="edit-company-form" class="grid grid-cols-2 gap-4"><input type="hidden" name="id" value="${company.id}"><div><label>Razão Social</label><input name="razao_social" value="${company.razao_social}" class="w-full p-2 border rounded"></div><div><label>Nome Fantasia</label><input name="nome_fantasia" value="${company.nome_fantasia}" class="w-full p-2 border rounded"></div><div class="col-span-2"><label>Endereço</label><input name="address" value="${company.address}" class="w-full p-2 border rounded"></div><div><label>I.E.</label><input name="ie" value="${company.ie || ''}" class="w-full p-2 border rounded"></div><div><label>Tipo</label><select name="company_type" class="w-full p-2 border rounded">${tipos.map(t => `<option ${t === company.company_type ? 'selected' : ''}>${t}</option>`).join('')}</select></div><div><label>Ramo</label><select name="business_branch" class="w-full p-2 border rounded">${ramos.map(r => `<option ${r === company.business_branch ? 'selected' : ''}>${r}</option>`).join('')}</select></div><div><label>Dia Faturamento</label><select name="billing_day" class="w-full p-2 border rounded">${dias.map(d => `<option ${d == company.billing_day ? 'selected' : ''}>${d}</option>`).join('')}</select></div><div class="col-span-2 mt-4 flex justify-end gap-4"><button type="button" id="cancel-btn" class="bg-slate-200 px-4 py-2 rounded-lg">Cancelar</button><button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg">Salvar Alterações</button></div></form>`;
+                const modalContent = `<h3 class="text-xl font-bold mb-6">Editar Empresa</h3><form id="edit-company-form" class="grid grid-cols-1 md:grid-cols-2 gap-4"><input type="hidden" name="id" value="${company.id}"><div><label>Razão Social</label><input name="razao_social" value="${company.razao_social}" class="w-full p-2 border rounded"></div><div><label>Nome Fantasia</label><input name="nome_fantasia" value="${company.nome_fantasia}" class="w-full p-2 border rounded"></div><div class="md:col-span-2"><label>Endereço</label><input name="address" value="${company.address}" class="w-full p-2 border rounded"></div><div><label>I.E.</label><input name="ie" value="${company.ie || ''}" class="w-full p-2 border rounded"></div><div><label>Tipo</label><select name="company_type" class="w-full p-2 border rounded">${tipos.map(t => `<option ${t === company.company_type ? 'selected' : ''}>${t}</option>`).join('')}</select></div><div><label>Ramo</label><select name="business_branch" class="w-full p-2 border rounded">${ramos.map(r => `<option ${r === company.business_branch ? 'selected' : ''}>${r}</option>`).join('')}</select></div><div><label>Dia Faturamento</label><select name="billing_day" class="w-full p-2 border rounded">${dias.map(d => `<option ${d == company.billing_day ? 'selected' : ''}>${d}</option>`).join('')}</select></div><div class="md:col-span-2 mt-4 flex justify-end gap-4"><button type="button" id="cancel-btn" class="bg-slate-200 px-4 py-2 rounded-lg">Cancelar</button><button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg">Salvar Alterações</button></div></form>`;
                 showModal(modalContent);
             }
 
@@ -316,10 +344,20 @@
             }
 
             if (saveLinksButton) {
-                const select = document.getElementById('company-select-link'), list = document.getElementById('modules-checkbox-list');
-                const companyId = select.value, moduleIds = Array.from(list.querySelectorAll('input:checked')).map(i => parseInt(i.value, 10));
-                await api.post('update-subscriptions', { companyId: parseInt(companyId, 10), moduleIds });
-                alert('Vínculos atualizados!');
+                const btn = e.target;
+                btn.disabled = true;
+                btn.innerHTML = '<div class="loader-white mx-auto"></div>';
+                try {
+                    const select = document.getElementById('company-select-link'), list = document.getElementById('modules-checkbox-list');
+                    const companyId = select.value, moduleIds = Array.from(list.querySelectorAll('input:checked')).map(i => parseInt(i.value, 10));
+                    await api.post('update-subscriptions', { companyId: parseInt(companyId, 10), moduleIds });
+                    alert('Vínculos atualizados!');
+                } catch(error) {
+                    alert('Erro ao salvar vínculos: ' + error);
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = 'Salvar Vínculos';
+                }
             }
 
             if (erpModuleLink) {
@@ -415,42 +453,6 @@
                 updateLoginPreview();
             }
         });
-
-        async function handleLogin(e) {
-            const form = e.target.closest('form');
-            const btn = form.querySelector('button[type="submit"]');
-            const errorEl = document.getElementById('login-error');
-            const login = document.getElementById('login_field').value;
-            const password = document.getElementById('password').value;
-            
-            btn.disabled = true;
-            btn.innerHTML = '<div class="loader-white mx-auto"></div>';
-            errorEl.textContent = '';
-            try {
-                if (login === ADMIN_USER.email && password === ADMIN_USER.password) {
-                    document.getElementById('login-section').style.display = 'none';
-                    document.getElementById('admin-panel-section').style.display = 'block';
-                    await navigateToSection('dashboard-main-section');
-                } else {
-                    const { user, permittedModules } = await api.post('login-user', { login_user: login, password });
-                    state.currentUser = { ...user, modules: permittedModules };
-                    renderUserERP();
-                }
-            } catch (error) {
-                errorEl.textContent = "Credenciais inválidas ou erro no servidor.";
-                btn.disabled = false;
-                btn.innerHTML = 'Entrar';
-            }
-        }
-
-        function handleLogout() {
-            state = { currentUser: null };
-            document.getElementById('admin-panel-section').style.display = 'none';
-            document.getElementById('user-erp-panel-section').style.display = 'none';
-            const loginSection = document.getElementById('login-section');
-            loginSection.style.display = 'flex';
-            init();
-        }
 
         function init() {
             const loginSection = document.getElementById('login-section');
