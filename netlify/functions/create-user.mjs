@@ -1,6 +1,5 @@
 import { neon } from '@netlify/neon';
 import { createHash } from 'crypto';
-import { Context } from "@netlify/functions";
 
 const sql = neon(process.env.NETLIFY_DATABASE_URL);
 
@@ -9,17 +8,17 @@ function hashPassword(password) {
     return createHash('sha256').update(password).digest('hex');
 }
 
-export default async (req: Request, context: Context) => {
-    if (req.method !== 'POST') {
-        return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { status: 405, headers: { 'Content-Type': 'application/json' } });
+export const handler = async (event) => {
+    if (event.httpMethod !== 'POST') {
+        return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
     }
 
     try {
-        const userData = await req.json();
+        const userData = JSON.parse(event.body);
         const { company_id, name, email, login_user, password, user_type } = userData;
 
         if (!password) {
-            return new Response(JSON.stringify({ error: 'A senha é obrigatória.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+            return { statusCode: 400, body: JSON.stringify({ error: 'A senha é obrigatória.' }) };
         }
 
         const password_hash = hashPassword(password);
@@ -29,11 +28,17 @@ export default async (req: Request, context: Context) => {
             VALUES (${company_id}, ${name}, ${email}, ${login_user}, ${password_hash}, ${user_type});
         `;
 
-        return new Response(JSON.stringify({ success: true, message: 'Usuário criado com sucesso!' }), { status: 201, headers: { 'Content-Type': 'application/json' } });
+        return {
+            statusCode: 201,
+            body: JSON.stringify({ success: true, message: 'Usuário criado com sucesso!' })
+        };
 
     } catch (error) {
         console.error('Erro ao criar usuário:', error);
-        return new Response(JSON.stringify({ error: 'Erro no servidor ao criar usuário.', details: error.message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: 'Erro no servidor ao criar usuário.', details: error.message })
+        };
     }
 };
 
