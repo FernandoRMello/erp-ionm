@@ -1,12 +1,26 @@
 import { neon } from '@netlify/neon';
 const sql = neon(process.env.NETLIFY_DATABASE_URL);
 
-export default async () => {
+export const handler = async (event) => {
+    if (event.httpMethod !== 'GET') {
+        return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
+    }
+
     try {
-        const modules = await sql`SELECT id, module_name FROM modules ORDER BY module_name;`;
-        return new Response(JSON.stringify(modules), { status: 200 });
+        // Busca todos os módulos ordenados pelo nome
+        const modules = await sql`SELECT id, module_name FROM modules ORDER BY module_name ASC;`;
+
+        return {
+            statusCode: 200,
+            body: JSON.stringify(modules)
+        };
+
     } catch (error) {
-        return new Response(JSON.stringify({ error: 'Erro ao buscar módulos.' }), { status: 500 });
+        console.error('Erro ao buscar módulos:', error);
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: 'Falha ao buscar módulos.', details: error.message })
+        };
     }
 };
 
