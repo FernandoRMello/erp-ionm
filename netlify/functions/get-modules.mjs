@@ -7,7 +7,7 @@ export const handler = async (event) => {
     }
 
     try {
-        // Busca todos os módulos ordenados pelo nome
+        // Busca apenas as colunas necessárias (id, module_name) para evitar erros e otimizar a performance.
         const modules = await sql`SELECT id, module_name FROM modules ORDER BY module_name ASC;`;
 
         return {
