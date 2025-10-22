@@ -17,6 +17,7 @@
         }
         .loader { border-top: 2px solid #3498db; }
         .loader-white { border-top: 2px solid #fff; display: inline-block; }
+        .page-content { display: none; }
         #main-nav a.active, #user-main-nav a.active { background-color: #eef2ff; color: #4f46e5; font-weight: 600; }
         #user-main-nav a.active { background-color: #4f46e5; color: white; }
         .modal-overlay {
@@ -29,7 +30,7 @@
         .modal-content {
             background-color: white; padding: 2rem; border-radius: 0.75rem;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            width: 90%; max-width: 600px;
+            width: 100%; max-width: 600px;
             transform: scale(0.95); transition: transform 0.3s ease;
         }
         .modal-overlay.visible .modal-content { transform: scale(1); }
@@ -51,30 +52,22 @@
         
         <!-- PAINEL DE ADMINISTRAÇÃO -->
         <div id="admin-panel-section" style="display: none;">
-            <div class="relative min-h-screen md:flex">
-                <!-- Overlay para menu mobile -->
-                <div id="admin-sidebar-overlay" class="fixed inset-0 bg-black/60 z-20 md:hidden" style="display: none;"></div>
-
-                <!-- Botão de Menu Mobile (Hambúrguer) -->
-                <div class="bg-white text-gray-900 flex justify-between md:hidden sticky top-0 z-10 shadow">
-                    <a href="#" class="block p-4 font-bold text-indigo-600">Gestão IONM</a>
-                    <button id="admin-menu-button" class="p-4 focus:outline-none focus:bg-gray-200">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                    </button>
-                </div>
-
-                <aside id="admin-sidebar" class="w-64 bg-slate-50 border-r border-slate-200 flex-col fixed inset-y-0 left-0 z-30 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-200 ease-in-out">
+            <div class="flex h-screen bg-white">
+                <aside class="w-64 bg-slate-50 border-r border-slate-200 flex flex-col">
                     <div class="p-6 text-center"><h1 class="text-2xl font-bold text-indigo-600">Gestão IONM</h1></div>
                     <nav id="main-nav" class="flex-1 px-4 space-y-1">
                         <a href="#" data-target="dashboard-main-section" class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-200 transition-colors">Dashboard</a>
+                        
                         <div class="pt-4 pb-2">
                             <h3 class="nav-heading">Cadastros</h3>
                             <a href="#" data-target="empresas-main-section" class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-200 transition-colors">Empresas</a>
                             <a href="#" data-target="usuarios-main-section" class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-200 transition-colors">Usuários</a>
                             <a href="#" data-target="modulos-main-section" class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-200 transition-colors">Módulos</a>
                         </div>
+
                         <div class="pt-4 pb-2">
                             <h3 class="nav-heading">Gerencial</h3>
+                            <a href="#" data-target="assinaturas-main-section" class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-200 transition-colors">Assinaturas</a>
                             <a href="#" data-target="financeiro-main-section" class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-200 transition-colors">Financeiro</a>
                             <a href="#" data-target="comercial-main-section" class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-200 transition-colors">Comercial</a>
                             <a href="#" data-target="relatorios-main-section" class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-200 transition-colors">Relatórios</a>
@@ -82,11 +75,12 @@
                     </nav>
                     <div class="p-4 border-t border-slate-200"><button id="logout-button" class="w-full text-left bg-red-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-red-600 transition duration-300">Sair</button></div>
                 </aside>
-                <main id="content-area" class="flex-1 p-4 md:p-8 overflow-y-auto bg-slate-100">
+                <main id="content-area" class="flex-1 p-8 overflow-y-auto bg-slate-100">
                     <div id="dashboard-main-section" class="page-content"></div>
                     <div id="empresas-main-section" class="page-content"></div>
                     <div id="usuarios-main-section" class="page-content"></div>
                     <div id="modulos-main-section" class="page-content"></div>
+                    <div id="assinaturas-main-section" class="page-content"></div>
                     <div id="financeiro-main-section" class="page-content"></div>
                     <div id="comercial-main-section" class="page-content"></div>
                     <div id="relatorios-main-section" class="page-content"></div>
@@ -96,17 +90,8 @@
 
         <!-- PAINEL DO USUÁRIO (ERP) -->
         <div id="user-erp-panel-section" style="display: none;">
-             <div class="relative min-h-screen md:flex">
-                <div id="user-sidebar-overlay" class="fixed inset-0 bg-black/60 z-20 md:hidden" style="display: none;"></div>
-                
-                <div class="bg-indigo-800 text-white flex justify-between md:hidden sticky top-0 z-10">
-                    <a href="#" class="block p-4 font-bold">ERP IONM</a>
-                    <button id="user-menu-button" class="p-4 focus:outline-none focus:bg-indigo-700">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                    </button>
-                </div>
-
-                <aside id="user-sidebar" class="w-64 bg-indigo-800 text-white flex-col fixed inset-y-0 left-0 z-30 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-200 ease-in-out">
+             <div class="flex h-screen bg-white">
+                <aside class="w-64 bg-indigo-800 text-white flex flex-col">
                     <div class="p-6 text-center"><h1 class="text-2xl font-bold">ERP IONM</h1></div>
                     <nav id="user-main-nav" class="flex-1 px-4 space-y-2"></nav>
                     <div class="p-4 border-t border-indigo-700">
@@ -114,7 +99,7 @@
                         <button id="user-logout-button" class="w-full text-left bg-red-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-red-600 transition duration-300">Sair</button>
                     </div>
                 </aside>
-                <main id="user-content-area" class="flex-1 p-4 md:p-8 overflow-y-auto bg-slate-100"></main>
+                <main id="user-content-area" class="flex-1 p-8 overflow-y-auto bg-slate-100"></main>
              </div>
         </div>
         <div id="modal-container"></div>
@@ -128,14 +113,14 @@
 
         // --- MOCK DATABASE E API SIMULADA ---
         const MOCK_DB = {
-            companies: [{id: 1, nome_fantasia: 'Loja de Exemplo LTDA', razao_social: 'Comércio Varejista Exemplo LTDA', address: 'Rua Fictícia, 123', ie: '123456', company_type: 'LTDA', business_branch: 'COMERCIO', billing_day: 5, contract_end_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString() },{id: 2, nome_fantasia: 'Indústria Metalúrgica', razao_social: 'Indústria ABC Metalúrgica S.A.', address: 'Av. Principal, 456', ie: '789012', company_type: 'LTDA', business_branch: 'INDUSTRIA', billing_day: 15, contract_end_date: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString() }],
+            companies: [{id: 1, nome_fantasia: 'Loja de Exemplo LTDA', razao_social: 'Comércio Varejista Exemplo LTDA', address: 'Rua Fictícia, 123', ie: '123456', company_type: 'LTDA', business_branch: 'COMERCIO', billing_day: 5, contract_end_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), user_limit: 5 },{id: 2, nome_fantasia: 'Indústria Metalúrgica', razao_social: 'Indústria ABC Metalúrgica S.A.', address: 'Av. Principal, 456', ie: '789012', company_type: 'LTDA', business_branch: 'INDUSTRIA', billing_day: 15, contract_end_date: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(), user_limit: 10 }],
             users: [{id: 1, name: 'João Vendedor', email: 'joao@loja.com', login_user: 'joao.vendedor', password: '123', company_id: 1, user_type: 'VENDEDOR', company_name: 'Loja de Exemplo LTDA'},{id: 2, name: 'Maria Gerente', email: 'maria@industria.com', login_user: 'maria.gerente', password: '123', company_id: 2, user_type: 'GERENTE', company_name: 'Indústria Metalúrgica'}],
             modules: [{id: 1, module_name: 'Controle de Estoque', monthly_cost_brl: 19.90, allowed_user_types: ['ESTOQUE', 'GERENTE', 'ADMINISTRADOR'], applicable_business_branches: ['COMERCIO', 'INDUSTRIA', 'ATACADISTA', 'ONLINE']},{id: 2, module_name: 'Financeiro', monthly_cost_brl: 59.90, allowed_user_types: ['GERENTE', 'ADMINISTRADOR'], applicable_business_branches: ['COMERCIO', 'INDUSTRIA', 'SERVICOS', 'ATACADISTA', 'ONLINE']},{id: 3, module_name: 'Gestão de Vendas (CRM)', monthly_cost_brl: 69.90, allowed_user_types: ['VENDEDOR', 'GERENTE', 'ADMINISTRADOR'], applicable_business_branches: ['COMERCIO', 'INDUSTRIA', 'SERVICOS', 'ATACADISTA', 'ONLINE']}],
             subscriptions: [{company_id: 1, module_id: 1}, {company_id: 1, module_id: 3},{company_id: 2, module_id: 1}, {company_id: 2, module_id: 2}, {company_id: 2, module_id: 3},]
         };
         const useMockApi = window.location.protocol === 'blob:';
         const realApi = { get: (endpoint) => fetch(`/api/${endpoint}`).then(res => res.ok ? res.json() : Promise.reject(res.statusText)), post: (endpoint, body) => fetch(`/api/${endpoint}`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) }).then(res => res.json().then(data => res.ok ? data : Promise.reject(data.error || res.statusText))) };
-        const mockApi = { get: (endpoint) => new Promise((resolve, reject) => { setTimeout(() => { const [path, params] = endpoint.split('?'); const query = new URLSearchParams(params); switch (path) { case 'get-dashboard-data': resolve({ total_companies: MOCK_DB.companies.length, total_users: MOCK_DB.users.length, total_monthly_revenue: '239.50', revenue_by_day: { '5': '89.80', '10': '0.00', '15': '149.70', '20': '0.00', '25': '0.00' }, companies_nearing_expiration: MOCK_DB.companies.filter(c => (new Date(c.contract_end_date) - Date.now()) < 7 * 24 * 60 * 60 * 1000), company_monthly_costs: { '1': 89.80, '2': 149.70 } }); break; case 'get-companies': resolve(MOCK_DB.companies); break; case 'get-users': resolve(MOCK_DB.users); break; case 'get-modules': resolve(MOCK_DB.modules); break; case 'get-company-details': resolve(MOCK_DB.companies.find(c => c.id == query.get('id')) || {}); break; case 'get-subscriptions-by-company': resolve(MOCK_DB.subscriptions.filter(s => s.company_id == query.get('companyId')).map(s => s.module_id)); break; default: reject('Endpoint GET não encontrado no mock: ' + path); } }, 300); }), post: (endpoint, body) => new Promise((resolve, reject) => { setTimeout(() => { switch (endpoint) { case 'login-user': const user = MOCK_DB.users.find(u => u.login_user === body.login_user && u.password === body.password); if (user) { const company = MOCK_DB.companies.find(c => c.id === user.company_id); const companySubs = MOCK_DB.subscriptions.filter(s => s.company_id === user.company_id).map(s => s.module_id); const permittedModules = MOCK_DB.modules.filter(m => companySubs.includes(m.id) && m.applicable_business_branches.includes(company.business_branch) && m.allowed_user_types.includes(user.user_type)); resolve({ user, permittedModules }); } else { reject({ error: 'Usuário ou senha inválidos.' }); } break; case 'create-company': MOCK_DB.companies.push({ ...body, id: Date.now(), contract_end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() }); resolve({ message: 'Success' }); break; case 'create-user': MOCK_DB.users.push({ ...body, id: Date.now(), company_name: MOCK_DB.companies.find(c=> c.id == body.company_id)?.nome_fantasia }); resolve({ message: 'Success' }); break; case 'create-module': MOCK_DB.modules.push({ ...body, id: Date.now() }); resolve({ message: 'Success' }); break; case 'update-company': const compIdx = MOCK_DB.companies.findIndex(c => c.id == body.id); if(compIdx > -1) MOCK_DB.companies[compIdx] = { ...MOCK_DB.companies[compIdx], ...body }; resolve({ message: 'Success' }); break; case 'update-subscriptions': MOCK_DB.subscriptions = MOCK_DB.subscriptions.filter(s => s.company_id != body.companyId); body.moduleIds.forEach(moduleId => MOCK_DB.subscriptions.push({ company_id: body.companyId, module_id: moduleId })); resolve({ message: 'Success' }); break; case 'renew-contract': const renewIdx = MOCK_DB.companies.findIndex(c => c.id == body.companyId); if (renewIdx > -1) { const d = new Date(MOCK_DB.companies[renewIdx].contract_end_date); d.setDate(d.getDate() + parseInt(body.renewalPeriodDays, 10)); MOCK_DB.companies[renewIdx].contract_end_date = d.toISOString(); } resolve({ message: 'Success' }); break; default: reject({ error: 'Endpoint POST não encontrado no mock: ' + endpoint }); } }, 300); }) };
+        const mockApi = { get: (endpoint) => new Promise((resolve, reject) => { setTimeout(() => { const [path, params] = endpoint.split('?'); const query = new URLSearchParams(params); switch (path) { case 'get-dashboard-data': resolve({ total_companies: MOCK_DB.companies.length, total_users: MOCK_DB.users.length, total_monthly_revenue: '239.50', revenue_by_day: { '5': '89.80', '10': '0.00', '15': '149.70', '20': '0.00', '25': '0.00' }, companies_nearing_expiration: MOCK_DB.companies.filter(c => (new Date(c.contract_end_date) - Date.now()) < 7 * 24 * 60 * 60 * 1000), company_monthly_costs: { '1': 89.80, '2': 149.70 } }); break; case 'get-companies': resolve(MOCK_DB.companies); break; case 'get-users': resolve(MOCK_DB.users); break; case 'get-modules': resolve(MOCK_DB.modules); break; case 'get-company-details': resolve(MOCK_DB.companies.find(c => c.id == query.get('id')) || {}); break; case 'get-subscription-management': const mgmtData = MOCK_DB.companies.map(c => ({...c, current_users: MOCK_DB.users.filter(u => u.company_id === c.id).length})); resolve(mgmtData); break; case 'get-subscriptions-by-company': resolve(MOCK_DB.subscriptions.filter(s => s.company_id == query.get('companyId')).map(s => s.module_id)); break; default: reject('Endpoint GET não encontrado no mock: ' + path); } }, 300); }), post: (endpoint, body) => new Promise((resolve, reject) => { setTimeout(() => { switch (endpoint) { case 'login-user': const user = MOCK_DB.users.find(u => u.login_user === body.login_user && u.password === body.password); if (user) { const company = MOCK_DB.companies.find(c => c.id === user.company_id); const companySubs = MOCK_DB.subscriptions.filter(s => s.company_id === user.company_id).map(s => s.module_id); const permittedModules = MOCK_DB.modules.filter(m => companySubs.includes(m.id) && m.applicable_business_branches.includes(company.business_branch) && m.allowed_user_types.includes(user.user_type)); resolve({ user, permittedModules }); } else { reject({ error: 'Usuário ou senha inválidos.' }); } break; case 'create-company': MOCK_DB.companies.push({ ...body, id: Date.now(), contract_end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() }); resolve({ message: 'Success' }); break; case 'create-user': MOCK_DB.users.push({ ...body, id: Date.now(), company_name: MOCK_DB.companies.find(c=> c.id == body.company_id)?.nome_fantasia }); resolve({ message: 'Success' }); break; case 'create-module': MOCK_DB.modules.push({ ...body, id: Date.now() }); resolve({ message: 'Success' }); break; case 'update-company': const compIdx = MOCK_DB.companies.findIndex(c => c.id == body.id); if(compIdx > -1) MOCK_DB.companies[compIdx] = { ...MOCK_DB.companies[compIdx], ...body }; resolve({ message: 'Success' }); break; case 'update-user-limit': const limitIdx = MOCK_DB.companies.findIndex(c => c.id == body.companyId); if(limitIdx > -1) MOCK_DB.companies[limitIdx].user_limit = body.newUserLimit; resolve({ message: 'Success' }); break; case 'update-subscriptions': MOCK_DB.subscriptions = MOCK_DB.subscriptions.filter(s => s.company_id != body.companyId); body.moduleIds.forEach(moduleId => MOCK_DB.subscriptions.push({ company_id: body.companyId, module_id: moduleId })); resolve({ message: 'Success' }); break; case 'renew-contract': const renewIdx = MOCK_DB.companies.findIndex(c => c.id == body.companyId); if (renewIdx > -1) { const d = new Date(MOCK_DB.companies[renewIdx].contract_end_date); d.setDate(d.getDate() + parseInt(body.renewalPeriodDays, 10)); MOCK_DB.companies[renewIdx].contract_end_date = d.toISOString(); } resolve({ message: 'Success' }); break; default: reject({ error: 'Endpoint POST não encontrado no mock: ' + endpoint }); } }, 300); }) };
         const api = useMockApi ? mockApi : realApi;
 
         async function handleLogin(e) {
@@ -189,7 +174,15 @@
             const template = pageTemplates[pageId];
             if (!template) return;
             pageContent.innerHTML = '<div class="loader mx-auto mt-10"></div>';
-            pageContent.innerHTML = await template();
+            try {
+                pageContent.innerHTML = await template();
+            } catch (error) {
+                console.error(`Erro ao renderizar a página ${pageId}:`, error);
+                pageContent.innerHTML = `<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                    <strong class="font-bold">Ocorreu um erro!</strong>
+                    <span class="block sm:inline">Não foi possível carregar os dados. Verifique o console para mais detalhes.</span>
+                </div>`;
+            }
         }
 
         async function navigateToSection(targetId) {
@@ -249,6 +242,7 @@
             'empresas-main-section': async () => `<h2 class="text-2xl font-bold mb-6">Gestão de Empresas</h2><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><button data-page="company-registration-page" class="page-nav-button bg-white p-6 rounded-xl shadow hover:shadow-lg text-left"><h3 class="text-lg font-bold">Cadastrar Empresa</h3></button><button data-page="company-list-page" class="page-nav-button bg-white p-6 rounded-xl shadow hover:shadow-lg text-left"><h3 class="text-lg font-bold">Listar Empresas</h3></button></div>`,
             'usuarios-main-section': async () => `<h2 class="text-2xl font-bold mb-6">Gestão de Usuários</h2><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><button data-page="user-registration-page" class="page-nav-button bg-white p-6 rounded-xl shadow hover:shadow-lg text-left"><h3 class="text-lg font-bold">Cadastrar Usuário</h3></button><button data-page="user-list-page" class="page-nav-button bg-white p-6 rounded-xl shadow hover:shadow-lg text-left"><h3 class="text-lg font-bold">Listar Usuários</h3></button></div>`,
             'modulos-main-section': async () => `<h2 class="text-2xl font-bold mb-6">Gestão de Módulos</h2><div class="grid grid-cols-1 md:grid-cols-3 gap-6"><button data-page="module-registration-page" class="page-nav-button bg-white p-6 rounded-xl shadow hover:shadow-lg text-left"><h3 class="text-lg font-bold">Cadastrar Módulo</h3></button><button data-page="module-list-page" class="page-nav-button bg-white p-6 rounded-xl shadow hover:shadow-lg text-left"><h3 class="text-lg font-bold">Listar Módulos</h3></button><button data-page="module-link-page" class="page-nav-button bg-white p-6 rounded-xl shadow hover:shadow-lg text-left"><h3 class="text-lg font-bold">Vincular Módulos</h3></button></div>`,
+            'assinaturas-main-section': async () => { const data = await api.get('get-subscription-management'); let content = `<h2 class="text-2xl font-bold mb-6">Gerenciamento de Assinaturas e Usuários</h2>`; content += `<div class="bg-white p-6 rounded-xl shadow">`; if (data.length === 0) { content += `<p>Nenhuma empresa cadastrada.</p>`; } else { content += `<div class="overflow-x-auto"><table class="w-full text-left"><thead><tr class="border-b"><th class="p-4">Empresa</th><th class="p-4">Usuários (Ativos / Limite)</th><th class="p-4 text-right">Ações</th></tr></thead><tbody>`; data.forEach(company => { content += `<tr><td class="p-4 border-b">${company.nome_fantasia}</td><td class="p-4 border-b">${company.current_users} / ${company.user_limit}</td><td class="p-4 border-b text-right"><button class="edit-user-limit-btn bg-blue-500 text-white px-3 py-1 rounded-lg" data-id="${company.id}" data-name="${company.nome_fantasia}" data-limit="${company.user_limit}">Alterar Limite</button></td></tr>`; }); content += `</tbody></table></div>`; } content += `</div>`; return content; },
             'financeiro-main-section': async () => `<h2 class="text-2xl font-bold mb-6">Financeiro</h2><div class="bg-white p-6 rounded-xl shadow"><p>Área para gestão de faturas, assinaturas e pagamentos.</p><p class="mt-4">Funcionalidade em desenvolvimento.</p></div>`,
             'comercial-main-section': async () => `<h2 class="text-2xl font-bold mb-6">Comercial</h2><div class="bg-white p-6 rounded-xl shadow"><p>Área para gestão de propostas, contratos e funil de vendas da plataforma.</p><p class="mt-4">Funcionalidade em desenvolvimento.</p></div>`,
             'relatorios-main-section': async () => `<h2 class="text-2xl font-bold mb-6">Gestão de Relatórios</h2><div class="bg-white p-6 rounded-xl shadow"><p>Esta área será usada para cadastrar novas definições de relatórios que aparecerão para os usuários nos módulos do ERP.</p><p class="mt-4">Funcionalidade em desenvolvimento.</p></div>`,
@@ -257,7 +251,7 @@
             'module-registration-page': async () => `<div><button data-page="modulos-main-section" class="page-nav-button mb-4 text-sm text-indigo-600 hover:underline">&larr; Voltar</button><div class="bg-white p-8 rounded-xl shadow-lg"><h3 class="text-xl font-bold mb-6">Novo Módulo</h3><form id="module-form" class="space-y-4"><div><label>Nome do Módulo</label><input name="module_name" required class="w-full p-2 border rounded"></div><div><label>Descrição</label><textarea name="description" class="w-full p-2 border rounded"></textarea></div><div><label>Versão</label><input name="version" class="w-full p-2 border rounded"></div><div><label>Custo Mensal (R$)</label><input name="monthly_cost_brl" type="number" step="0.01" required class="w-full p-2 border rounded"></div><fieldset><legend>Perfis Permitidos</legend><div>${['ADMINISTRADOR', 'GERENTE', 'VENDEDOR', 'ESTOQUE', 'USUARIO'].map(p=>`<label class="mr-4"><input type="checkbox" name="allowed_user_types" value="${p}"> ${p}</label>`).join('')}</div></fieldset><fieldset><legend>Ramos Aplicáveis</legend><div>${['COMERCIO', 'INDUSTRIA', 'SERVICOS', 'ATACADISTA', 'ONLINE'].map(r=>`<label class="mr-4"><input type="checkbox" name="applicable_business_branches" value="${r}"> ${r}</label>`).join('')}</div></fieldset><div class="text-right"><button type="submit" class="bg-indigo-600 text-white font-semibold p-2 px-4 rounded">Cadastrar Módulo</button></div></form></div></div>`,
             'module-link-page': async () => { const [companies, modules] = await Promise.all([api.get('get-companies'), api.get('get-modules')]); return `<div><button data-page="modulos-main-section" class="page-nav-button mb-4 text-sm text-indigo-600 hover:underline">&larr; Voltar</button><div class="bg-white p-8 rounded-xl shadow-lg"><h3 class="text-xl font-bold mb-6">Vincular Módulos à Empresa</h3><div><label>Selecione a Empresa</label><select id="company-select-link" class="w-full p-2 border rounded"><option value="">Selecione...</option>${companies.map(c=>`<option value="${c.id}">${c.nome_fantasia}</option>`).join('')}</select></div><div id="modules-checkbox-list" class="mt-4 space-y-2"></div><div class="text-right mt-4"><button id="save-links-btn" class="bg-indigo-600 text-white font-semibold p-2 px-4 rounded hidden disabled:bg-indigo-400">Salvar Vínculos</button></div></div></div>`; },
             'company-list-page': async () => { const companies = await api.get('get-companies'); return `<div><button data-page="empresas-main-section" class="page-nav-button mb-4 text-sm text-indigo-600 hover:underline">&larr; Voltar</button><div class="bg-white p-8 rounded-xl shadow-lg"><h3 class="text-xl font-bold mb-6">Empresas Cadastradas</h3>${createTableHTML(['ID', 'Nome Fantasia'], companies.map(c => ({id: c.id, data: [c.id, c.nome_fantasia]})), [{label: 'Editar', class: 'edit-company-btn bg-gray-500 text-white px-3 py-1 rounded-lg'}])}</div></div>`; },
-            'user-list-page': async () => { const users = await api.get('get-users'); return `<div><button data-page="usuarios-main-section" class="page-nav-button mb-4 text-sm text-indigo-600 hover:underline">&larr; Voltar</button><div class="bg-white p-8 rounded-xl shadow-lg"><h3 class="text-xl font-bold mb-6">Usuários Cadastrados</h3>${createTableHTML(['Nome', 'Usuário', 'Empresa', 'Perfil'], users.map(u => ({id: u.id, data: [u.name, u.login_user, u.company_name, u.user_type]})))}</div></div>`; },
+            'user-list-page': async () => { const users = await api.get('get-users'); return `<div><button data-page="usuarios-main-section" class="page-nav-button mb-4 text-sm text-indigo-600 hover:underline">&larr; Voltar</button><div class="bg-white p-8 rounded-xl shadow-lg"><h3 class="text-xl font-bold mb-6">Usuários Cadastrados</h3>${createTableHTML(['Nome', 'Usuário', 'Empresa', 'Perfil'], users.map(u => ({id: u.id, data: [u.name, u.login_user, u.company_name || 'N/A', u.user_type]})))}</div></div>`; },
             'module-list-page': async () => { const modules = await api.get('get-modules'); return `<div><button data-page="modulos-main-section" class="page-nav-button mb-4 text-sm text-indigo-600 hover:underline">&larr; Voltar</button><div class="bg-white p-8 rounded-xl shadow-lg"><h3 class="text-xl font-bold mb-6">Módulos Cadastrados</h3>${createTableHTML(['ID', 'Nome do Módulo'], modules.map(m => ({id: m.id, data: [m.id, m.module_name]})))}</div></div>`; },
         };
         
@@ -287,13 +281,14 @@
                 } 
                 else if (form.id === 'module-form') { const formData = new FormData(form); const data = Object.fromEntries(formData.entries()); data.allowed_user_types = formData.getAll('allowed_user_types'); data.applicable_business_branches = formData.getAll('applicable_business_branches'); await api.post('create-module', data); alert('Módulo criado!'); await navigateToSection('modulos-main-section'); } 
                 else if (form.id === 'edit-company-form') { await api.post('update-company', Object.fromEntries(new FormData(form))); alert('Empresa atualizada!'); closeModal(); await renderPage('company-list-page', document.getElementById('empresas-main-section')); }
+                else if (form.id === 'update-user-limit-form') { const formData = new FormData(form); const data = Object.fromEntries(formData.entries()); await api.post('update-user-limit', { companyId: data.companyId, newUserLimit: data.newUserLimit }); alert('Limite de usuários atualizado com sucesso!'); closeModal(); await renderPage('assinaturas-main-section', document.getElementById('assinaturas-main-section'));}
             } catch (error) { alert('Erro: ' + error.toString()); } 
             finally { if(btn) btn.disabled = false; }
         });
 
         DOM.app.addEventListener('click', async (e) => {
             const target = e.target;
-            const navLink = target.closest('#main-nav a'), navButton = target.closest('.page-nav-button'), editButton = target.closest('.edit-company-btn'), renewButton = target.closest('.renew-btn'), saveLinksButton = target.closest('#save-links-btn'), erpModuleLink = target.closest('.erp-module-link'), reportLink = target.closest('.report-link'), cancelButton = target.closest('#cancel-btn');
+            const navLink = target.closest('#main-nav a'), navButton = target.closest('.page-nav-button'), editButton = target.closest('.edit-company-btn'), renewButton = target.closest('.renew-btn'), saveLinksButton = target.closest('#save-links-btn'), erpModuleLink = target.closest('.erp-module-link'), reportLink = target.closest('.report-link'), cancelButton = target.closest('#cancel-btn'), editUserLimitButton = target.closest('.edit-user-limit-btn');
 
             if (target.id === 'logout-button' || target.id === 'user-logout-button' || target.id === 'admin-sidebar-overlay' || target.id === 'user-sidebar-overlay') {
                 if (target.id.includes('logout')) handleLogout();
@@ -327,6 +322,13 @@
                 const company = await api.get(`get-company-details?id=${id}`);
                 const ramos = ['COMERCIO', 'INDUSTRIA', 'SERVICOS', 'ATACADISTA', 'ONLINE'], tipos = ['MEI', 'LTDA'], dias = [5, 10, 15, 20, 25];
                 const modalContent = `<h3 class="text-xl font-bold mb-6">Editar Empresa</h3><form id="edit-company-form" class="grid grid-cols-1 md:grid-cols-2 gap-4"><input type="hidden" name="id" value="${company.id}"><div><label>Razão Social</label><input name="razao_social" value="${company.razao_social}" class="w-full p-2 border rounded"></div><div><label>Nome Fantasia</label><input name="nome_fantasia" value="${company.nome_fantasia}" class="w-full p-2 border rounded"></div><div class="md:col-span-2"><label>Endereço</label><input name="address" value="${company.address}" class="w-full p-2 border rounded"></div><div><label>I.E.</label><input name="ie" value="${company.ie || ''}" class="w-full p-2 border rounded"></div><div><label>Tipo</label><select name="company_type" class="w-full p-2 border rounded">${tipos.map(t => `<option ${t === company.company_type ? 'selected' : ''}>${t}</option>`).join('')}</select></div><div><label>Ramo</label><select name="business_branch" class="w-full p-2 border rounded">${ramos.map(r => `<option ${r === company.business_branch ? 'selected' : ''}>${r}</option>`).join('')}</select></div><div><label>Dia Faturamento</label><select name="billing_day" class="w-full p-2 border rounded">${dias.map(d => `<option ${d == company.billing_day ? 'selected' : ''}>${d}</option>`).join('')}</select></div><div class="md:col-span-2 mt-4 flex justify-end gap-4"><button type="button" id="cancel-btn" class="bg-slate-200 px-4 py-2 rounded-lg">Cancelar</button><button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg">Salvar Alterações</button></div></form>`;
+                showModal(modalContent);
+            }
+
+            if(editUserLimitButton){
+                e.preventDefault();
+                const { id, name, limit } = editUserLimitButton.dataset;
+                const modalContent = `<h3 class="text-xl font-bold mb-4">Alterar Limite de Usuários</h3><p class="mb-6 text-slate-600">Empresa: <strong>${name}</strong></p><form id="update-user-limit-form"><input type="hidden" name="companyId" value="${id}"><div><label for="new-limit" class="block font-medium">Novo Limite de Usuários</label><input type="number" id="new-limit" name="newUserLimit" value="${limit}" class="w-full p-2 border rounded-lg mt-1" min="1" required></div><div class="mt-8 flex justify-end gap-4"><button type="button" id="cancel-btn" class="bg-slate-200 px-4 py-2 rounded-lg">Cancelar</button><button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg">Salvar Limite</button></div></form>`;
                 showModal(modalContent);
             }
 
