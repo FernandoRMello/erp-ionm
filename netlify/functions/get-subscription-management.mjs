@@ -2,34 +2,48 @@ import { neon } from '@netlify/neon';
 
 const sql = neon(process.env.NETLIFY_DATABASE_URL);
 
-export default async (req, context) => {
-    if (req.method !== 'POST') {
-        return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { status: 405, headers: { 'Content-Type': 'application/json' } });
+export const handler = async (event) => {
+    console.log("HANDLER: Iniciando get-subscription-management..."); // Log 1: Início da função
+
+    if (event.httpMethod !== 'GET') {
+        console.warn("HANDLER: Método não permitido:", event.httpMethod);
+        return { 
+            statusCode: 405, 
+            body: JSON.stringify({ error: 'Method Not Allowed' }),
+            headers: { 'Content-Type': 'application/json' }
+        };
     }
 
     try {
-        const { companyId, moduleIds } = await req.json();
+        console.log("HANDLER: Tentando buscar dados de gerenciamento no banco..."); // Log 2: Antes da consulta
+        
+        const data = await sql`
+            SELECT 
+                c.id, 
+                c.nome_fantasia, 
+                c.user_limit,
+                (SELECT COUNT(*) FROM users u WHERE u.company_id = c.id) AS current_users
+            FROM 
+                companies c
+            ORDER BY
+                c.nome_fantasia ASC;
+        `;
+        
+        console.log(`HANDLER: Consulta bem-sucedida, ${data.length} empresas encontradas para gerenciamento.`); // Log 3: Após consulta
 
-        if (!companyId || !Array.isArray(moduleIds)) {
-            return new Response(JSON.stringify({ error: 'ID da empresa e um array de IDs de módulos são obrigatórios.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
-        }
-
-        // Transação: Primeiro apaga os vínculos antigos e depois insere os novos.
-        await sql.transaction(async (tx) => {
-            await tx`DELETE FROM subscriptions WHERE company_id = ${companyId};`;
-            if (moduleIds.length > 0) {
-                for (const moduleId of moduleIds) {
-                    await tx`INSERT INTO subscriptions (company_id, module_id) VALUES (${companyId}, ${moduleId});`;
-                }
-            }
-        });
-
-        return new Response(JSON.stringify({ success: true, message: 'Vínculos atualizados com sucesso!' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+        return {
+            statusCode: 200,
+            body: JSON.stringify(data),
+            headers: { 'Content-Type': 'application/json' }
+        };
 
     } catch (error) {
-        // Corrigido: Usando a variável 'error' que é definida pelo catch.
-        console.error('Erro ao atualizar vínculos:', error);
-        return new Response(JSON.stringify({ error: 'Erro no servidor ao atualizar vínculos.', details: error.message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+        console.error('HANDLER: Erro CRÍTICO ao buscar dados de gerenciamento:', error); // Log 4: Captura de erro
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: 'Erro no servidor ao buscar dados de gerenciamento.', details: error.message }),
+            headers: { 'Content-Type': 'application/json' }
+        };
     }
 };
 
