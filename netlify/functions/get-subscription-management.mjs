@@ -8,22 +8,28 @@ export default async (req, context) => {
     }
 
     try {
-        const { companyId, newUserLimit } = await req.json();
+        const { companyId, moduleIds } = await req.json();
 
-        if (!companyId || newUserLimit === undefined || newUserLimit < 0) {
-            return new Response(JSON.stringify({ error: 'ID da empresa e um novo limite válido são obrigatórios.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+        if (!companyId || !Array.isArray(moduleIds)) {
+            return new Response(JSON.stringify({ error: 'ID da empresa e um array de IDs de módulos são obrigatórios.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
         }
 
-        await sql`
-            UPDATE companies
-            SET user_limit = ${newUserLimit}
-            WHERE id = ${companyId};
-        `;
+        // Transação: Primeiro apaga os vínculos antigos e depois insere os novos.
+        await sql.transaction(async (tx) => {
+            await tx`DELETE FROM subscriptions WHERE company_id = ${companyId};`;
+            if (moduleIds.length > 0) {
+                for (const moduleId of moduleIds) {
+                    await tx`INSERT INTO subscriptions (company_id, module_id) VALUES (${companyId}, ${moduleId});`;
+                }
+            }
+        });
 
-        return new Response(JSON.stringify({ success: true, message: 'Limite de usuários atualizado.' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ success: true, message: 'Vínculos atualizados com sucesso!' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
 
     } catch (error) {
-        console.error('Erro ao atualizar limite de usuários:', error);
-        return new Response(JSON.stringify({ error: 'Erro no servidor ao atualizar o limite.', details: error.message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+        // Corrigido: Usando a variável 'error' que é definida pelo catch.
+        console.error('Erro ao atualizar vínculos:', error);
+        return new Response(JSON.stringify({ error: 'Erro no servidor ao atualizar vínculos.', details: error.message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
 };
+
