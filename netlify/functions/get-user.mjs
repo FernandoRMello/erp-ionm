@@ -1,9 +1,8 @@
 import { neon } from '@netlify/neon';
-import { Context } from "@netlify/functions";
 
 const sql = neon(process.env.NETLIFY_DATABASE_URL);
 
-export default async (req: Request, context: Context) => {
+export default async (req, context) => {
     if (req.method !== 'GET') {
         return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { status: 405, headers: { 'Content-Type': 'application/json' } });
     }
@@ -32,4 +31,5 @@ export default async (req: Request, context: Context) => {
         return new Response(JSON.stringify({ error: 'Erro no servidor ao buscar usuários.', details: error.message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
 };
+
 
