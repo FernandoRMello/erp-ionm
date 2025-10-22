@@ -2,6 +2,8 @@
 
 [build]
   # Diretório onde suas funções serverless estão localizadas.
+  
+  command = "npm install" # ou comando de build, se houver
   functions = "netlify/functions"
 
 # Regra de redirecionamento para garantir que as funções sejam acessíveis.
