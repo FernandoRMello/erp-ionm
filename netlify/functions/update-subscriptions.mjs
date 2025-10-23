@@ -1,20 +1,5 @@
 import { neon } from '@netlify/neon';
 
-// Função para limpar a string de conexão (Correção do 'psql')
-function getValidConnectionString(envVar) {
-    if (!envVar) return null;
-    
-    // Remove o 'psql ' do início e o ' do fim, se existirem
-    let cleanString = envVar.trim();
-    if (cleanString.startsWith("psql '")) {
-        cleanString = cleanString.substring(6); // Remove "psql '"
-    }
-    if (cleanString.endsWith("'")) {
-        cleanString = cleanString.substring(0, cleanString.length - 1); // Remove "'"
-    }
-    return cleanString;
-}
-
 // Tenta obter a variável de ambiente correta
 const connectionString = getValidConnectionString(process.env.NETLIFY_DATABASE_URL) || getValidConnectionString(process.env.NETLIFY_DATABASE_URL);
 
