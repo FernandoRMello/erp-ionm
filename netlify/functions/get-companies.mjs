@@ -1,6 +1,4 @@
-import { neon } from '@netlify/neon';
-const sql = neon(process.env.NETLIFY_DATABASE_URL);
-
+import { sql } from './neon-client.mjs';
 export default async () => {
     try {
         const companies = await sql`SELECT id, nome_fantasia FROM companies ORDER BY nome_fantasia;`;

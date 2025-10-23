@@ -1,8 +1,5 @@
-import { neon } from '@netlify/neon';
+import { sql } from './neon-client.mjs';
 import { createHash } from 'crypto';
-
-const sql = neon(process.env.NETLIFY_DATABASE_URL);
-
 // Função para criar um hash da senha
 function hashPassword(password) {
     return createHash('sha256').update(password).digest('hex');

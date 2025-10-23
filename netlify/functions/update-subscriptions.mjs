@@ -1,16 +1,5 @@
-import { neon } from '@netlify/neon';
-
-// Tenta obter a variável de ambiente correta
-const connectionString = getValidConnectionString(process.env.NETLIFY_DATABASE_URL) || getValidConnectionString(process.env.NETLIFY_DATABASE_URL);
-
-if (!connectionString) {
-    console.error("ERRO CRÍTICO: Variável de ambiente do banco de dados não encontrada ou inválida.");
-}
-
-// Inicializa o 'sql' UMA VEZ.
-// Se a string estiver inválida, a função vai falhar aqui, o que é esperado.
-const sql = neon(connectionString);
-
+// PASSO 1: Importar o 'sql' pronto do nosso cliente central
+import { sql } from './neon-client.mjs';
 
 // ====================================================================
 // INÍCIO DA LÓGICA DA FUNÇÃO
@@ -27,7 +16,7 @@ export default async (req, context) => {
         const body = await req.json();
         let { companyId, moduleIds } = body;
 
-        // PASSO 1: LOGGING DE DEPURAÇÃO
+        // LOGGING DE DEPURAÇÃO
         console.log('[update-subscriptions] Dados recebidos:', JSON.stringify(body));
 
         // Validação
@@ -39,8 +28,7 @@ export default async (req, context) => {
             });
         }
 
-        // PASSO 2: GARANTIR TIPOS DE DADOS (Inteiros)
-        // O seu frontend já faz isso, mas é uma boa prática o backend fazer também.
+        // GARANTIR TIPOS DE DADOS (Inteiros)
         const numericCompanyId = parseInt(companyId, 10);
         const numericModuleIds = moduleIds.map(id => parseInt(id, 10)).filter(id => !isNaN(id));
 
@@ -80,20 +68,9 @@ export default async (req, context) => {
         });
 
     } catch (error) {
-        // PASSO 3: LOGGING DE ERRO DETALHADO
-        console.error('[update-subscriptions] Erro catastrófico:', error.message);
+        // LOGGING DE ERRO DETALHADO
+        console.error('[update-subscriptions] Erro catastrófico:', error.message, error.stack);
         
-        // Se o erro for da conexão, dê uma mensagem específica
-        if (error.message.includes("Database connection string")) {
-             return new Response(JSON.stringify({ 
-                error: 'Erro de configuração da conexão com o banco de dados.',
-                details: error.message 
-            }), {
-                status: 500,
-                headers: { 'Content-Type': 'application/json' }
-            });
-        }
-
         return new Response(JSON.stringify({ 
             error: 'Erro no servidor ao atualizar assinaturas.',
             details: error.message 

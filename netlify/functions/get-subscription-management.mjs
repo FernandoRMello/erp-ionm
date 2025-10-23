@@ -1,7 +1,4 @@
-import { neon } from '@netlify/neon';
-
-const sql = neon(process.env.NETLIFY_DATABASE_URL);
-
+import { sql } from './neon-client.mjs';
 export const handler = async (event) => {
     console.log("HANDLER: Iniciando get-subscription-management..."); // Log 1: Início da função
 

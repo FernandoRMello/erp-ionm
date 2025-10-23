@@ -1,7 +1,4 @@
-import { neon } from '@netlify/neon';
-
-const sql = neon(process.env.NETLIFY_DATABASE_URL);
-
+import { sql } from './neon-client.mjs';
 // NOTA: Esta é uma implementação SIMPLIFICADA para demonstração.
 // Uma implementação real exigiria validação de JWT, extração do JTI e da data de expiração.
 export const handler = async (event) => {

@@ -1,5 +1,4 @@
-import { neon } from '@netlify/neon';
-const sql = neon(process.env.NETLIFY_DATABASE_URL);
+import { sql } from './neon-client.mjs';
 
 export default async (req) => {
     try {

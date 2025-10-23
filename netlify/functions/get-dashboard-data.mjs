@@ -1,7 +1,4 @@
-import { neon } from '@netlify/neon';
-
-const sql = neon(process.env.NETLIFY_DATABASE_URL);
-
+import { sql } from './neon-client.mjs';
 const USER_PRICES = {
     'ADMINISTRADOR': 49.90, 'GERENTE': 29.90, 'VENDEDOR': 19.90,
     'ESTOQUE': 19.90, 'USUARIO': 9.90

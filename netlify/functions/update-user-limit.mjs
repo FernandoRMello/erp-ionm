@@ -1,6 +1,4 @@
-// Importe o seu cliente de banco de dados (Ex: Neon)
-// import { sql } from '@netlify/neon';
-
+import { sql } from './neon-client.mjs';
 export default async (req, context) => {
   // Bloco try...catch é CRUCIAL (Passo 1.1.3 do plano)
   try {

@@ -1,6 +1,4 @@
-import { neon } from '@netlify/neon';
-const sql = neon(process.env.NETLIFY_DATABASE_URL);
-
+import { sql } from './neon-client.mjs';
 export const handler = async (event) => {
     if (event.httpMethod !== 'GET') {
         return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
