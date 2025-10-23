@@ -16,7 +16,7 @@ function getValidConnectionString(envVar) {
 }
 
 // Tenta obter a variável de ambiente correta
-const connectionString = getValidConnectionString(process.env.DATABASE_URL) || getValidConnectionString(process.env.NETLIFY_DATABASE_URL);
+const connectionString = getValidConnectionString(process.env.NETLIFY_DATABASE_URL) || getValidConnectionString(process.env.NETLIFY_DATABASE_URL);
 
 if (!connectionString) {
     console.error("ERRO CRÍTICO: Variável de ambiente do banco de dados não encontrada ou inválida.");

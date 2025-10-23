@@ -115,12 +115,15 @@
         const MOCK_DB = {
             companies: [{id: 1, nome_fantasia: 'Loja de Exemplo LTDA', razao_social: 'Comércio Varejista Exemplo LTDA', address: 'Rua Fictícia, 123', ie: '123456', company_type: 'LTDA', business_branch: 'COMERCIO', billing_day: 5, contract_end_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), user_limit: 5 },{id: 2, nome_fantasia: 'Indústria Metalúrgica', razao_social: 'Indústria ABC Metalúrgica S.A.', address: 'Av. Principal, 456', ie: '789012', company_type: 'LTDA', business_branch: 'INDUSTRIA', billing_day: 15, contract_end_date: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(), user_limit: 10 }],
             users: [{id: 1, name: 'João Vendedor', email: 'joao@loja.com', login_user: 'joao.vendedor', password: '123', company_id: 1, user_type: 'VENDEDOR', company_name: 'Loja de Exemplo LTDA'},{id: 2, name: 'Maria Gerente', email: 'maria@industria.com', login_user: 'maria.gerente', password: '123', company_id: 2, user_type: 'GERENTE', company_name: 'Indústria Metalúrgica'}],
-            modules: [{id: 1, module_name: 'Controle de Estoque', monthly_cost_brl: 19.90, allowed_user_types: ['ESTOQUE', 'GERENTE', 'ADMINISTRADOR'], applicable_business_branches: ['COMERCIO', 'INDUSTRIA', 'ATACADISTA', 'ONLINE']},{id: 2, module_name: 'Financeiro', monthly_cost_brl: 59.90, allowed_user_types: ['GERENTE', 'ADMINISTRADOR'], applicable_business_branches: ['COMERCIO', 'INDUSTRIA', 'SERVICOS', 'ATACADISTA', 'ONLINE']},{id: 3, module_name: 'Gestão de Vendas (CRM)', monthly_cost_brl: 69.90, allowed_user_types: ['VENDEDOR', 'GERENTE', 'ADMINISTRADOR'], applicable_business_branches: ['COMERCIO', 'INDUSTRIA', 'SERVICOS', 'ATACADISTA', 'ONLINE']}],
-            subscriptions: [{company_id: 1, module_id: 1}, {company_id: 1, module_id: 3},{company_id: 2, module_id: 1}, {company_id: 2, module_id: 2}, {company_id: 2, module_id: 3},]
+            modules: [{id: 1, module_name: 'Controle de Estoque', monthly_cost_brl: 19.90, allowed_user_types: ['ESTOQUE', 'GERENTE', 'ADMINISTRADOR', 'VENDEDOR'], applicable_business_branches: ['COMERCIO', 'INDUSTRIA', 'ATACADISTA', 'ONLINE']},{id: 2, module_name: 'Financeiro', monthly_cost_brl: 59.90, allowed_user_types: ['GERENTE', 'ADMINISTRADOR'], applicable_business_branches: ['COMERCIO', 'INDUSTRIA', 'SERVICOS', 'ATACADISTA', 'ONLINE']},{id: 3, module_name: 'Gestão de Vendas (CRM)', monthly_cost_brl: 69.90, allowed_user_types: ['VENDEDOR', 'GERENTE', 'ADMINISTRADOR'], applicable_business_branches: ['COMERCIO', 'INDUSTRIA', 'SERVICOS', 'ATACADISTA', 'ONLINE']},{id: 4, module_name: 'Ponto de Venda (PDV)', monthly_cost_brl: 49.90, allowed_user_types: ['VENDEDOR', 'GERENTE', 'ADMINISTRADOR'], applicable_business_branches: ['COMERCIO', 'ATACADISTA', 'ONLINE']}],
+            subscriptions: [{company_id: 1, module_id: 1}, {company_id: 1, module_id: 3}, {company_id: 1, module_id: 4},{company_id: 2, module_id: 1}, {company_id: 2, module_id: 2}, {company_id: 2, module_id: 3}]
         };
-        const useMockApi = window.location.protocol === 'blob:';
+        
+        // ** O 'blob:' ativa o modo de teste (Mock API) automaticamente no preview **
+        const useMockApi = window.location.protocol === 'blob:'; 
+        
         const realApi = { get: (endpoint) => fetch(`/api/${endpoint}`).then(res => res.ok ? res.json() : Promise.reject(res.statusText)), post: (endpoint, body) => fetch(`/api/${endpoint}`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) }).then(res => res.json().then(data => res.ok ? data : Promise.reject(data.error || res.statusText))) };
-        const mockApi = { get: (endpoint) => new Promise((resolve, reject) => { setTimeout(() => { const [path, params] = endpoint.split('?'); const query = new URLSearchParams(params); switch (path) { case 'get-dashboard-data': resolve({ total_companies: MOCK_DB.companies.length, total_users: MOCK_DB.users.length, total_monthly_revenue: '239.50', revenue_by_day: { '5': '89.80', '10': '0.00', '15': '149.70', '20': '0.00', '25': '0.00' }, companies_nearing_expiration: MOCK_DB.companies.filter(c => (new Date(c.contract_end_date) - Date.now()) < 7 * 24 * 60 * 60 * 1000), company_monthly_costs: { '1': 89.80, '2': 149.70 } }); break; case 'get-companies': resolve(MOCK_DB.companies); break; case 'get-users': resolve(MOCK_DB.users); break; case 'get-modules': resolve(MOCK_DB.modules); break; case 'get-company-details': resolve(MOCK_DB.companies.find(c => c.id == query.get('id')) || {}); break; case 'get-subscription-management': const mgmtData = MOCK_DB.companies.map(c => ({...c, current_users: MOCK_DB.users.filter(u => u.company_id === c.id).length})); resolve(mgmtData); break; case 'get-subscriptions-by-company': resolve(MOCK_DB.subscriptions.filter(s => s.company_id == query.get('companyId')).map(s => s.module_id)); break; default: reject('Endpoint GET não encontrado no mock: ' + path); } }, 300); }), post: (endpoint, body) => new Promise((resolve, reject) => { setTimeout(() => { switch (endpoint) { case 'login-user': const user = MOCK_DB.users.find(u => u.login_user === body.login_user && u.password === body.password); if (user) { const company = MOCK_DB.companies.find(c => c.id === user.company_id); const companySubs = MOCK_DB.subscriptions.filter(s => s.company_id === user.company_id).map(s => s.module_id); const permittedModules = MOCK_DB.modules.filter(m => companySubs.includes(m.id) && m.applicable_business_branches.includes(company.business_branch) && m.allowed_user_types.includes(user.user_type)); resolve({ user, permittedModules }); } else { reject({ error: 'Usuário ou senha inválidos.' }); } break; case 'create-company': MOCK_DB.companies.push({ ...body, id: Date.now(), contract_end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() }); resolve({ message: 'Success' }); break; case 'create-user': MOCK_DB.users.push({ ...body, id: Date.now(), company_name: MOCK_DB.companies.find(c=> c.id == body.company_id)?.nome_fantasia }); resolve({ message: 'Success' }); break; case 'create-module': MOCK_DB.modules.push({ ...body, id: Date.now() }); resolve({ message: 'Success' }); break; case 'update-company': const compIdx = MOCK_DB.companies.findIndex(c => c.id == body.id); if(compIdx > -1) MOCK_DB.companies[compIdx] = { ...MOCK_DB.companies[compIdx], ...body }; resolve({ message: 'Success' }); break; case 'update-user-limit': const limitIdx = MOCK_DB.companies.findIndex(c => c.id == body.companyId); if(limitIdx > -1) MOCK_DB.companies[limitIdx].user_limit = body.newUserLimit; resolve({ message: 'Success' }); break; case 'update-subscriptions': MOCK_DB.subscriptions = MOCK_DB.subscriptions.filter(s => s.company_id != body.companyId); body.moduleIds.forEach(moduleId => MOCK_DB.subscriptions.push({ company_id: body.companyId, module_id: moduleId })); resolve({ message: 'Success' }); break; case 'renew-contract': const renewIdx = MOCK_DB.companies.findIndex(c => c.id == body.companyId); if (renewIdx > -1) { const d = new Date(MOCK_DB.companies[renewIdx].contract_end_date); d.setDate(d.getDate() + parseInt(body.renewalPeriodDays, 10)); MOCK_DB.companies[renewIdx].contract_end_date = d.toISOString(); } resolve({ message: 'Success' }); break; default: reject({ error: 'Endpoint POST não encontrado no mock: ' + endpoint }); } }, 300); }) };
+        const mockApi = { get: (endpoint) => new Promise((resolve, reject) => { setTimeout(() => { const [path, params] = endpoint.split('?'); const query = new URLSearchParams(params); switch (path) { case 'get-dashboard-data': resolve({ total_companies: MOCK_DB.companies.length, total_users: MOCK_DB.users.length, total_monthly_revenue: '239.50', revenue_by_day: { '5': '89.80', '10': '0.00', '15': '149.70', '20': '0.00', '25': '0.00' }, companies_nearing_expiration: MOCK_DB.companies.filter(c => (new Date(c.contract_end_date) - Date.now()) < 7 * 24 * 60 * 60 * 1000), company_monthly_costs: { '1': 89.80, '2': 149.70 } }); break; case 'get-companies': resolve(MOCK_DB.companies); break; case 'get-users': resolve(MOCK_DB.users); break; case 'get-modules': resolve(MOCK_DB.modules); break; case 'get-company-details': resolve(MOCK_DB.companies.find(c => c.id == query.get('id')) || {}); break; case 'get-subscription-management': const mgmtData = MOCK_DB.companies.map(c => ({...c, current_users: MOCK_DB.users.filter(u => u.company_id === c.id).length})); resolve(mgmtData); break; case 'get-subscriptions-by-company': resolve(MOCK_DB.subscriptions.filter(s => s.company_id == query.get('companyId')).map(s => s.module_id)); break; default: reject('Endpoint GET não encontrado no mock: ' + path); } }, 300); }), post: (endpoint, body) => new Promise((resolve, reject) => { setTimeout(() => { switch (endpoint) { case 'login-user': const user = MOCK_DB.users.find(u => u.login_user === body.login_user && u.password === body.password); if (user) { const company = MOCK_DB.companies.find(c => c.id === user.company_id); const companySubs = MOCK_DB.subscriptions.filter(s => s.company_id === user.company_id).map(s => s.module_id); const permittedModules = MOCK_DB.modules.filter(m => companySubs.includes(m.id) && m.applicable_business_branches.includes(company.business_branch) && m.allowed_user_types.includes(user.user_type)); resolve({ user, permittedModules }); } else { reject({ error: 'Usuário ou senha inválidos.' }); } break; case 'create-company': MOCK_DB.companies.push({ ...body, id: Date.now(), contract_end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() }); resolve({ message: 'Success' }); break; case 'create-user': MOCK_DB.users.push({ ...body, id: Date.now(), company_name: MOCK_DB.companies.find(c=> c.id == body.company_id)?.nome_fantasia }); resolve({ message: 'Success' }); break; case 'create-module': MOCK_DB.modules.push({ ...body, id: Date.now() }); resolve({ message: 'Success' }); break; case 'update-company': const compIdx = MOCK_DB.companies.findIndex(c => c.id == body.id); if(compIdx > -1) MOCK_DB.companies[compIdx] = { ...MOCK_DB.companies[compIdx], ...body }; resolve({ message: 'Success' }); break; case 'update-user-limit': const limitIdx = MOCK_DB.companies.findIndex(c => c.id == body.companyId); if(limitIdx > -1) MOCK_DB.companies[limitIdx].user_limit = body.newUserLimit; resolve({ message: 'Success' }); break; case 'update-subscriptions': MOCK_DB.subscriptions = MOCK_DB.subscriptions.filter(s => s.company_id != body.companyId); body.moduleIds.forEach(moduleId => MOCK_DB.subscriptions.push({ company_id: body.companyId, module_id: moduleId })); console.log('Mock DB Subscriptions atualizadas:', MOCK_DB.subscriptions); resolve({ message: 'Success' }); break; case 'renew-contract': const renewIdx = MOCK_DB.companies.findIndex(c => c.id == body.companyId); if (renewIdx > -1) { const d = new Date(MOCK_DB.companies[renewIdx].contract_end_date); d.setDate(d.getDate() + parseInt(body.renewalPeriodDays, 10)); MOCK_DB.companies[renewIdx].contract_end_date = d.toISOString(); } resolve({ message: 'Success' }); break; default: reject({ error: 'Endpoint POST não encontrado no mock: ' + endpoint }); } }, 300); }) };
         const api = useMockApi ? mockApi : realApi;
 
         async function handleLogin(e) {
@@ -190,8 +193,8 @@
              document.querySelectorAll('.page-content').forEach(section => section.style.display = 'none');
              const targetSection = document.getElementById(targetId);
              if(targetSection) {
-                targetSection.style.display = 'block';
-                await renderPage(targetId, targetSection);
+                 targetSection.style.display = 'block';
+                 await renderPage(targetId, targetSection);
              }
         }
         function showModal(content) {
@@ -215,6 +218,15 @@
             document.getElementById('user-content-area').innerHTML = html;
         }
 
+        // --- MELHORIA: Helper para criar modais de alerta ---
+        function createAlertModal(title, message) {
+            return `<h3 class="text-xl font-bold mb-4">${title}</h3>
+                    <p class="text-slate-600 mb-6">${message}</p>
+                    <div class="mt-8 flex justify-end gap-4">
+                        <button type="button" id="cancel-btn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg">OK</button>
+                    </div>`;
+        }
+
         const createTableHTML = (headers, rows, actions = []) => {
             const headerHtml = `<thead><tr class="border-b">${headers.map(h => `<th class="p-2">${h}</th>`).join('')}${actions.length ? '<th></th>' : ''}</tr></thead>`;
             const bodyHtml = `<tbody>${rows.map(rowObject => {
@@ -235,6 +247,17 @@
             'Emissão de Notas Fiscais (NF-e)': 'nfe',
             'Ponto de Venda (PDV)': 'pdv',
             'Precificação': 'precificacao'
+        };
+        
+        // Simulação de Relatórios
+        const erpReports = {
+            'Controle de Estoque': [
+                { id: 'stock_value', name: 'Posição de Valor de Estoque', description: 'Valor total do estoque atual por produto.' },
+                { id: 'stock_abc', name: 'Curva ABC de Estoque', description: 'Classificação de produtos por relevância.' }
+            ],
+            'Financeiro': [
+                { id: 'cash_flow', name: 'Fluxo de Caixa', description: 'Entradas e saídas por período.' }
+            ]
         };
 
         const pageTemplates = {
@@ -263,7 +286,7 @@
             if (btn) btn.disabled = true;
             try {
                 if (form.id === 'login-form') { await handleLogin(e); } 
-                else if (form.id === 'company-form') { await api.post('create-company', Object.fromEntries(new FormData(form))); alert('Empresa criada!'); await navigateToSection('dashboard-main-section'); } 
+                else if (form.id === 'company-form') { await api.post('create-company', Object.fromEntries(new FormData(form))); showModal(createAlertModal('Sucesso', 'Empresa criada!')); await navigateToSection('dashboard-main-section'); } 
                 else if (form.id === 'user-form') {
                     const formData = new FormData(form);
                     const data = Object.fromEntries(formData.entries());
@@ -276,13 +299,13 @@
                         data.login_user = `${baseLogin}@${companyFirstName}`;
                     }
                     await api.post('create-user', data);
-                    alert(`Usuário criado! Login final: ${data.login_user}`);
+                    showModal(createAlertModal('Sucesso', `Usuário criado! Login final: ${data.login_user}`));
                     await navigateToSection('usuarios-main-section');
                 } 
-                else if (form.id === 'module-form') { const formData = new FormData(form); const data = Object.fromEntries(formData.entries()); data.allowed_user_types = formData.getAll('allowed_user_types'); data.applicable_business_branches = formData.getAll('applicable_business_branches'); await api.post('create-module', data); alert('Módulo criado!'); await navigateToSection('modulos-main-section'); } 
-                else if (form.id === 'edit-company-form') { await api.post('update-company', Object.fromEntries(new FormData(form))); alert('Empresa atualizada!'); closeModal(); await renderPage('company-list-page', document.getElementById('empresas-main-section')); }
-                else if (form.id === 'update-user-limit-form') { const formData = new FormData(form); const data = Object.fromEntries(formData.entries()); await api.post('update-user-limit', { companyId: data.companyId, newUserLimit: data.newUserLimit }); alert('Limite de usuários atualizado com sucesso!'); closeModal(); await renderPage('assinaturas-main-section', document.getElementById('assinaturas-main-section'));}
-            } catch (error) { alert('Erro: ' + error.toString()); } 
+                else if (form.id === 'module-form') { const formData = new FormData(form); const data = Object.fromEntries(formData.entries()); data.allowed_user_types = formData.getAll('allowed_user_types'); data.applicable_business_branches = formData.getAll('applicable_business_branches'); await api.post('create-module', data); showModal(createAlertModal('Sucesso', 'Módulo criado!')); await navigateToSection('modulos-main-section'); } 
+                else if (form.id === 'edit-company-form') { await api.post('update-company', Object.fromEntries(new FormData(form))); showModal(createAlertModal('Sucesso', 'Empresa atualizada!')); closeModal(); await renderPage('company-list-page', document.getElementById('empresas-main-section')); }
+                else if (form.id === 'update-user-limit-form') { const formData = new FormData(form); const data = Object.fromEntries(formData.entries()); await api.post('update-user-limit', { companyId: data.companyId, newUserLimit: data.newUserLimit }); showModal(createAlertModal('Sucesso', 'Limite de usuários atualizado com sucesso!')); closeModal(); await renderPage('assinaturas-main-section', document.getElementById('assinaturas-main-section'));}
+            } catch (error) { showModal(createAlertModal('Erro', error.toString())); } 
             finally { if(btn) btn.disabled = false; }
         });
 
@@ -292,18 +315,6 @@
 
             if (target.id === 'logout-button' || target.id === 'user-logout-button' || target.id === 'admin-sidebar-overlay' || target.id === 'user-sidebar-overlay') {
                 if (target.id.includes('logout')) handleLogout();
-                document.getElementById('admin-sidebar').classList.add('-translate-x-full');
-                document.getElementById('admin-sidebar-overlay').style.display = 'none';
-                document.getElementById('user-sidebar').classList.add('-translate-x-full');
-                document.getElementById('user-sidebar-overlay').style.display = 'none';
-            }
-            if(target.closest('#admin-menu-button')) {
-                document.getElementById('admin-sidebar').classList.remove('-translate-x-full');
-                document.getElementById('admin-sidebar-overlay').style.display = 'block';
-            }
-            if(target.closest('#user-menu-button')) {
-                document.getElementById('user-sidebar').classList.remove('-translate-x-full');
-                document.getElementById('user-sidebar-overlay').style.display = 'block';
             }
 
             if (navLink) { e.preventDefault(); navigateToSection(navLink.dataset.target); }
@@ -341,7 +352,7 @@
                 const periodSelect = document.getElementById('renewal-period'), costEl = document.getElementById('renewal-cost');
                 const calculateCost = () => costEl.textContent = `R$ ${(monthlyCost * Math.round(periodSelect.value / 30)).toFixed(2).replace('.', ',')}`;
                 periodSelect.onchange = calculateCost; calculateCost();
-                document.getElementById('confirm-renewal-btn').onclick = async () => { await api.post('renew-contract', { companyId: id, renewalPeriodDays: periodSelect.value }); alert('Contrato renovado!'); closeModal(); await navigateToSection('dashboard-main-section'); };
+                document.getElementById('confirm-renewal-btn').onclick = async () => { await api.post('renew-contract', { companyId: id, renewalPeriodDays: periodSelect.value }); showModal(createAlertModal('Sucesso', 'Contrato renovado!')); await navigateToSection('dashboard-main-section'); };
             }
 
             if (saveLinksButton) {
@@ -352,9 +363,9 @@
                     const select = document.getElementById('company-select-link'), list = document.getElementById('modules-checkbox-list');
                     const companyId = select.value, moduleIds = Array.from(list.querySelectorAll('input:checked')).map(i => parseInt(i.value, 10));
                     await api.post('update-subscriptions', { companyId: parseInt(companyId, 10), moduleIds });
-                    alert('Vínculos atualizados!');
+                    showModal(createAlertModal('Sucesso', 'Vínculos atualizados!'));
                 } catch(error) {
-                    alert('Erro ao salvar vínculos: ' + error);
+                    showModal(createAlertModal('Erro', 'Erro ao salvar vínculos: ' + error));
                 } finally {
                     btn.disabled = false;
                     btn.textContent = 'Salvar Vínculos';
@@ -368,25 +379,26 @@
                  const moduleName = erpModuleLink.dataset.moduleName;
                  const fileName = moduleFileNames[moduleName];
                  if(fileName) {
-                    try {
-                        const response = await fetch(`./modules/${fileName}.html`);
-                        if(!response.ok) throw new Error('Módulo não encontrado.');
-                        const textContent = await response.text();
-                        const userContentArea = document.getElementById('user-content-area');
-                        userContentArea.innerHTML = textContent;
-                        
-                        const reportContainer = userContentArea.querySelector('#report-section-container');
-                        if (reportContainer && ['ADMINISTRADOR', 'GERENTE'].includes(state.currentUser.user_type)) {
-                            const moduleReports = erpReports[moduleName] || [];
-                             if (moduleReports.length > 0) {
-                                reportContainer.innerHTML = `<div class="bg-white p-6 rounded-lg shadow mt-6"><h4 class="font-bold mb-4">Relatórios do Módulo</h4><div class="space-y-2">${moduleReports.map(r => `<button data-report-id="${r.id}" data-module="${moduleName}" class="report-link text-indigo-600 hover:underline block">${r.name}</button>`).join('')}</div></div>`;
-                             }
-                        }
-                    } catch (error) {
-                        document.getElementById('user-content-area').innerHTML = `<p>Erro ao carregar o módulo: ${error.message}</p>`;
-                    }
+                     try {
+                         // ** Alterado para carregar do caminho correto **
+                         const response = await fetch(`./modules/${fileName}.html`);
+                         if(!response.ok) throw new Error('Módulo não encontrado (404).');
+                         const textContent = await response.text();
+                         const userContentArea = document.getElementById('user-content-area');
+                         userContentArea.innerHTML = textContent;
+                         
+                         const reportContainer = userContentArea.querySelector('#report-section-container');
+                         if (reportContainer && ['ADMINISTRADOR', 'GERENTE'].includes(state.currentUser.user_type)) {
+                             const moduleReports = erpReports[moduleName] || [];
+                              if (moduleReports.length > 0) {
+                                  reportContainer.innerHTML = `<div class="bg-white p-6 rounded-lg shadow mt-6"><h4 class="font-bold mb-4">Relatórios do Módulo</h4><div class="space-y-2">${moduleReports.map(r => `<button data-report-id="${r.id}" data-module="${moduleName}" class="report-link text-indigo-600 hover:underline block">${r.name}</button>`).join('')}</div></div>`;
+                              }
+                         }
+                     } catch (error) {
+                         document.getElementById('user-content-area').innerHTML = `<p>Erro ao carregar o módulo: ${error.message}</p>`;
+                     }
                  } else {
-                     document.getElementById('user-content-area').innerHTML = `<p>Módulo em construção.</p>`;
+                      document.getElementById('user-content-area').innerHTML = `<p>Módulo em construção.</p>`;
                  }
             }
         });
@@ -452,7 +464,7 @@
             }
              if (e.target.closest('#user-form')) {
                 updateLoginPreview();
-            }
+             }
         });
 
         function init() {
