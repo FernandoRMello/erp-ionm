@@ -46,7 +46,7 @@ export default async (req, context) => {
         console.log('[update-subscriptions] Dados recebidos:', JSON.stringify(body));
 
         // Validação
-        if (!companyId || !Array.isArray(moduleIds)) {
+        if (companyId === undefined || companyId === null || !Array.isArray(moduleIds)) {
             console.error('[update-subscriptions] Falha na validação:', { companyId, moduleIds });
             return new Response(JSON.stringify({ error: 'ID da empresa e um array de IDs de módulos são obrigatórios.' }), {
                 status: 400,
@@ -55,6 +55,7 @@ export default async (req, context) => {
         }
 
         // PASSO 2: GARANTIR TIPOS DE DADOS (Inteiros)
+        // O seu frontend já faz isso, mas é uma boa prática o backend fazer também.
         const numericCompanyId = parseInt(companyId, 10);
         const numericModuleIds = moduleIds.map(id => parseInt(id, 10)).filter(id => !isNaN(id));
 
@@ -116,5 +117,5 @@ export default async (req, context) => {
             headers: { 'Content-Type': 'application/json' }
         });
     }
-}; // <-- Esta é a chave '}' que provavelmente estava a faltar
+};
 
