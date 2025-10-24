@@ -1,50 +1,73 @@
-import { sql } from './neon-client.mjs';
-export default async (req, context) => {
-  // Bloco try...catch é CRUCIAL (Passo 1.1.3 do plano)
-  try {
-    // 1. Validar se o método é POST
-    if (req.method !== 'POST') {
-      return new Response(JSON.stringify({ error: 'Método não permitido' }), {
+/**
+ * Manipulador para requisições POST (/api/update-user-limit)
+ * Atualiza o limite de usuários (user_limit) para uma empresa na tabela 'subscriptions'.
+ */
+async function handlePost(context) {
+    try {
+        const db = context.env.D1_DATABASE; // Conexão com o Cloudflare D1
+        const body = await context.request.json();
+
+        const { companyId, newUserLimit } = body;
+
+        // Validação dos dados recebidos
+        if (!companyId || !newUserLimit) {
+            return new Response(JSON.stringify({ error: 'ID da empresa e novo limite são obrigatórios.' }), { 
+                status: 400,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+
+        const limit = parseInt(newUserLimit, 10);
+        if (isNaN(limit) || limit <= 0) {
+            return new Response(JSON.stringify({ error: 'O novo limite deve ser um número positivo.' }), { 
+                status: 400,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+
+        // Atualiza a tabela 'subscriptions'
+        const stmt = db.prepare(`
+            UPDATE subscriptions
+            SET 
+                user_limit = ?
+            WHERE 
+                company_id = ?
+        `);
+        
+        const info = await stmt.bind(limit, companyId).run();
+
+        if (info.changes === 0) {
+            // Isso pode acontecer se o company_id não existir na tabela subscriptions
+            return new Response(JSON.stringify({ error: 'Nenhuma assinatura encontrada para esta empresa.' }), { 
+                status: 404, // Not Found
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+
+        return new Response(JSON.stringify({ message: 'Limite de usuários atualizado com sucesso!' }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+    } catch (error) {
+        console.error('Erro ao atualizar limite de usuários:', error);
+        return new Response(JSON.stringify({ error: 'Erro interno no servidor.', details: error.message }), { 
+            status: 500,
+            headers: { 'Content-Type': 'application/json' }
+        });
+    }
+}
+
+/**
+ * Manipulador principal da Cloudflare Function
+ */
+export default async (context) => {
+    if (context.request.method === 'POST') {
+        return await handlePost(context);
+    }
+
+    return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { 
         status: 405,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    // 2. Ler os dados enviados pelo frontend
-    const body = await req.json();
-    const { companyId, newLimit } = body;
-
-    // 3. Validar os dados
-    if (!companyId || newLimit === undefined) {
-      return new Response(JSON.stringify({ error: 'Dados em falta' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    // 4. Executar a lógica de banco de dados (exemplo)
-    // console.log(`A atualizar empresa ${companyId} para o limite ${newLimit}`);
-    // DESCOMENTE QUANDO O DB ESTIVER PRONTO
-    // await sql`UPDATE companies SET user_limit = ${newLimit} WHERE id = ${companyId}`;
-
-    // 5. Retornar SUCESSO com JSON
-    return new Response(JSON.stringify({
-      success: true,
-      message: `Limite da empresa ${companyId} atualizado para ${newLimit}`,
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' }
     });
-
-  } catch (error) {
-    // 6. Retornar ERRO com JSON
-    console.error('Erro em update-user-limit:', error);
-    return new Response(JSON.stringify({
-      error: 'Erro interno do servidor',
-      details: error.message,
-    }), {
-      status: 500, // Erro de servidor
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
 };

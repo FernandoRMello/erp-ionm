@@ -1,80 +1,141 @@
--- Apaga as tabelas existentes (se existirem) para garantir um estado limpo.
--- CUIDADO: Isto apagará todos os dados existentes! Comente se quiser preservar os dados.
-DROP TABLE IF EXISTS subscriptions;
-DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS modules;
-DROP TABLE IF EXISTS companies;
-DROP TABLE IF EXISTS jwt_blocklist; -- Adicionado
+-- ==========================
+-- SCHEMA PRINCIPAL (D1)
+-- ==========================
 
--- Cria a tabela de empresas
-CREATE TABLE companies (
-    id SERIAL PRIMARY KEY,
-    cnpj VARCHAR(18) UNIQUE NOT NULL,
-    razao_social VARCHAR(255) NOT NULL,
-    nome_fantasia VARCHAR(255),
-    address TEXT,
-    ie VARCHAR(20),
-    company_type VARCHAR(50),
-    business_branch VARCHAR(50),
-    billing_day INT CHECK (billing_day IN (5, 10, 15, 20, 25)),
-    contract_end_date DATE NOT NULL,
-    user_limit INT DEFAULT 5 NOT NULL, -- Limite de usuários padrão
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+PRAGMA foreign_keys = ON;
+
+-- Empresas (clientes)
+CREATE TABLE IF NOT EXISTS companies (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  cnpj TEXT UNIQUE,
+  name TEXT NOT NULL, -- Razão Social (do form)
+  trading_name TEXT,  -- Nome Fantasia (do form)
+  address JSON,         -- Endereço (do form, convertido para JSON)
+  contract_starts_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  contract_expires_at DATETIME, -- 30 dias trial por default
+  status TEXT DEFAULT 'active' CHECK(status IN ('active', 'suspended', 'cancelled')),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Cria a tabela de módulos
-CREATE TABLE modules (
-    id SERIAL PRIMARY KEY,
-    module_name VARCHAR(100) UNIQUE NOT NULL,
-    description TEXT,
-    version VARCHAR(20),
-    monthly_cost_brl NUMERIC(10, 2) NOT NULL,
-    tags TEXT[], -- Array de strings para tags
-    allowed_user_types TEXT[] NOT NULL, -- Array de perfis permitidos (ex: ['ADMINISTRADOR', 'GERENTE'])
-    applicable_business_branches TEXT[] NOT NULL, -- Array de ramos aplicáveis (ex: ['COMERCIO', 'INDUSTRIA'])
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+-- Usuários (multi-empresa via company_id)
+CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  company_id INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+  username TEXT NOT NULL,     -- Mapeado de login_user@empresa (do form)
+  email TEXT,               -- Email (do form)
+  password_hash TEXT NOT NULL, -- SHA256 da senha (do form)
+  role TEXT NOT NULL,       -- Mapeado de user_type (ex: 'ADMINISTRADOR', 'GERENTE')
+  active INTEGER DEFAULT 1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(company_id, username)
 );
 
--- Cria a tabela de usuários
-CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    company_id INT NOT NULL REFERENCES companies(id) ON DELETE CASCADE, -- Se a empresa for deletada, os usuários também são.
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    login_user VARCHAR(100) UNIQUE NOT NULL,
-    password_hash VARCHAR(64) NOT NULL, -- Armazena o hash SHA-256 da senha
-    user_type VARCHAR(50) NOT NULL CHECK (user_type IN ('ADMINISTRADOR', 'GERENTE', 'VENDEDOR', 'ESTOQUE', 'USUARIO')),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+-- Lojas / Locations (multi-loja por company)
+-- Criada automaticamente 1 'default' em /api/create-company
+CREATE TABLE IF NOT EXISTS locations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  company_id INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+  code TEXT NOT NULL, -- ex: loja-001
+  name TEXT,
+  timezone TEXT DEFAULT 'America/Sao_Paulo',
+  address JSON,
+  active INTEGER DEFAULT 1,
+  metadata JSON,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(company_id, code)
 );
 
--- Cria a tabela de assinaturas (vínculo entre empresas e módulos)
-CREATE TABLE subscriptions (
-    id SERIAL PRIMARY KEY,
-    company_id INT NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
-    module_id INT NOT NULL REFERENCES modules(id) ON DELETE CASCADE,
-    subscribed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (company_id, module_id) -- Garante que uma empresa só pode assinar um módulo uma vez
+-- Módulos cadastrados no sistema (tipos de módulos disponíveis)
+CREATE TABLE IF NOT EXISTS modules (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  key TEXT UNIQUE NOT NULL, -- ex: 'pdv', 'estoque', 'financeiro' (gerado do nome)
+  name TEXT NOT NULL,       -- Mapeado de module_name (do form)
+  description TEXT,         -- Mapeado de description (do form)
+  default_price_cents INTEGER DEFAULT 0, -- Mapeado de monthly_cost_brl (do form)
+  allowed_roles JSON,       -- Mapeado de allowed_user_types (do form)
+  applicable_branches JSON, -- Mapeado de applicable_business_branches (do form)
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Cria a tabela para blocklist de JWT (Logout Seguro)
-CREATE TABLE jwt_blocklist (
-    id SERIAL PRIMARY KEY,
-    token_jti VARCHAR(255) UNIQUE NOT NULL, -- Identificador único do token
-    expires_at TIMESTAMP WITH TIME ZONE NOT NULL, -- Quando o token originalmente expira
-    blocked_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+-- Assinatura / módulos habilitados por empresa
+CREATE TABLE IF NOT EXISTS company_modules (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  company_id INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+  module_key TEXT NOT NULL, -- Chave do módulo (ex: 'pdv')
+  activated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  expires_at DATETIME,
+  config JSON,
+  UNIQUE(company_id, module_key)
 );
 
--- Insere os módulos padrão (Exemplo)
-INSERT INTO modules (module_name, description, version, monthly_cost_brl, tags, allowed_user_types, applicable_business_branches) VALUES
-('Controle de Estoque', 'Gerencia a entrada e saída de produtos, controla o inventário e alerta sobre baixos níveis de estoque.', '1.0.0', 19.90, ARRAY['estoque', 'inventario', 'produtos'], ARRAY['ESTOQUE', 'GERENTE', 'ADMINISTRADOR'], ARRAY['COMERCIO', 'INDUSTRIA', 'ATACADISTA', 'ONLINE']),
-('Financeiro', 'Controle de contas a pagar e a receber, fluxo de caixa, conciliação bancária e emissão de relatórios.', '1.1.0', 59.90, ARRAY['financeiro', 'contas', 'caixa'], ARRAY['GERENTE', 'ADMINISTRADOR'], ARRAY['COMERCIO', 'INDUSTRIA', 'SERVICOS', 'ATACADISTA', 'ONLINE']),
-('Gestão de Vendas (CRM)', 'Gerencia o funil de vendas, cadastra clientes, acompanha negociações.', '1.0.2', 69.90, ARRAY['vendas', 'crm', 'clientes'], ARRAY['VENDEDOR', 'GERENTE', 'ADMINISTRADOR'], ARRAY['COMERCIO', 'INDUSTRIA', 'SERVICOS', 'ATACADISTA', 'ONLINE']),
-('Emissão de Notas Fiscais (NF-e)', 'Emite Notas Fiscais eletrônicas de produtos e serviços.', '2.0.0', 99.90, ARRAY['fiscal', 'nfe', 'impostos'], ARRAY['GERENTE', 'ADMINISTRADOR', 'USUARIO'], ARRAY['COMERCIO', 'INDUSTRIA', 'SERVICOS', 'ATACADISTA', 'ONLINE']),
-('Ponto de Venda (PDV)', 'Interface de caixa para vendas rápidas em lojas físicas.', '1.3.0', 39.90, ARRAY['vendas', 'pdv', 'caixa'], ARRAY['VENDEDOR', 'GERENTE', 'ADMINISTRADOR', 'USUARIO'], ARRAY['COMERCIO', 'ATACADISTA', 'SERVICOS']),
-('Precificação', 'Ferramenta para auxiliar na precificação de produtos e serviços.', '1.0.0', 29.90, ARRAY['precos', 'custos', 'margem'], ARRAY['GERENTE', 'ADMINISTRADOR'], ARRAY['COMERCIO', 'INDUSTRIA', 'SERVICOS', 'ATACADISTA', 'ONLINE']);
+-- Assinaturas / cobrança por empresa (faturamento)
+-- Criada automaticamente 1 'trial' em /api/create-company
+CREATE TABLE IF NOT EXISTS subscriptions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  company_id INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+  plan_key TEXT NOT NULL DEFAULT 'trial', -- ex: 'trial','basic','pro'
+  monthly_cents INTEGER NOT NULL DEFAULT 0,
+  user_limit INTEGER NOT NULL DEFAULT 10,
+  active INTEGER DEFAULT 1,
+  billing_day INTEGER, -- Mapeado de billing_day (do form)
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(company_id, plan_key)
+);
 
--- Adiciona Índices para otimizar consultas comuns
-CREATE INDEX idx_users_company_id ON users(company_id);
-CREATE INDEX idx_subscriptions_company_id ON subscriptions(company_id);
-CREATE INDEX idx_jwt_blocklist_expires_at ON jwt_blocklist(expires_at);
+-- Auditoria genérica
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  company_id INTEGER,
+  actor_user_id INTEGER,
+  action TEXT NOT NULL,
+  details JSON,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 
+-- Produtos e variantes globais
+CREATE TABLE IF NOT EXISTS products (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  company_id INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+  sku TEXT NOT NULL,
+  name TEXT NOT NULL,
+  description TEXT,
+  active INTEGER DEFAULT 1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(company_id, sku)
+);
+
+CREATE TABLE IF NOT EXISTS variants (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  company_id INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+  product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  sku TEXT NOT NULL,
+  barcode TEXT,
+  attributes JSON,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(company_id, sku)
+);
+
+-- Inventário global por location
+CREATE TABLE IF NOT EXISTS inventory (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  company_id INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+  location_id INTEGER NOT NULL REFERENCES locations(id) ON DELETE CASCADE,
+  variant_id INTEGER NOT NULL REFERENCES variants(id) ON DELETE CASCADE,
+  quantity INTEGER NOT NULL DEFAULT 0,
+  reserved INTEGER NOT NULL DEFAULT 0,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(location_id, variant_id)
+);
+
+-- Transações (venda) central
+CREATE TABLE IF NOT EXISTS transactions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  company_id INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+  location_id INTEGER NOT NULL REFERENCES locations(id),
+  external_id TEXT,
+  total_cents INTEGER NOT NULL,
+  currency TEXT NOT NULL DEFAULT 'BRL',
+  status TEXT NOT NULL, -- pending/completed/failed
+  metadata JSON,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);

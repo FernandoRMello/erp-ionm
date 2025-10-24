@@ -1,83 +1,87 @@
-// PASSO 1: Importar o 'sql' pronto do nosso cliente central
-import { sql } from './neon-client.mjs';
-
-// ====================================================================
-// INÍCIO DA LÓGICA DA FUNÇÃO
-// ====================================================================
-export default async (req, context) => {
-    // Apenas aceite o método POST
-    if (req.method !== 'POST') {
-        return new Response(JSON.stringify({ error: 'Método não permitido' }), {
-            status: 405, headers: { 'Content-Type': 'application/json' }
-        });
-    }
-
+/**
+ * Manipulador para requisições POST (/api/update-subscriptions)
+ * Atualiza os módulos vinculados (assinados) por uma empresa.
+ * Isto envolve uma tradução de IDs numéricos (do frontend) para chaves de texto (do D1).
+ */
+async function handlePost(context) {
     try {
-        const body = await req.json();
-        let { companyId, moduleIds } = body;
+        const db = context.env.D1_DATABASE; // Conexão com o Cloudflare D1
+        const body = await context.request.json();
 
-        // LOGGING DE DEPURAÇÃO
-        console.log('[update-subscriptions] Dados recebidos:', JSON.stringify(body));
+        const { companyId, moduleIds } = body;
 
-        // Validação
-        if (companyId === undefined || companyId === null || !Array.isArray(moduleIds)) {
-            console.error('[update-subscriptions] Falha na validação:', { companyId, moduleIds });
-            return new Response(JSON.stringify({ error: 'ID da empresa e um array de IDs de módulos são obrigatórios.' }), {
+        // Validação básica
+        if (!companyId || !Array.isArray(moduleIds)) {
+            return new Response(JSON.stringify({ error: 'ID da empresa e um array de IDs de módulos são obrigatórios.' }), { 
                 status: 400,
                 headers: { 'Content-Type': 'application/json' }
             });
         }
 
-        // GARANTIR TIPOS DE DADOS (Inteiros)
-        const numericCompanyId = parseInt(companyId, 10);
-        const numericModuleIds = moduleIds.map(id => parseInt(id, 10)).filter(id => !isNaN(id));
+        let moduleKeys = [];
 
-        if (isNaN(numericCompanyId)) {
-             console.error('[update-subscriptions] ID da empresa é inválido:', companyId);
-             return new Response(JSON.stringify({ error: 'ID da empresa é inválido.' }), {
-                status: 400, headers: { 'Content-Type': 'application/json' }
-             });
-        }
-        
-        console.log(`[update-subscriptions] A processar: CompanyID=${numericCompanyId}, ModuleIDs=${numericModuleIds.join(',')}`);
-
-        // Transação: Deleta as assinaturas antigas e insere as novas
-        await sql.transaction(async (tx) => {
-            // 1. Deleta todas as assinaturas existentes
-            console.log(`[update-subscriptions] A deletar assinaturas antigas para company_id: ${numericCompanyId}`);
-            await tx`DELETE FROM subscriptions WHERE company_id = ${numericCompanyId};`;
+        // 1. Converter IDs numéricos de módulos (do app.js) para module_keys (do D1)
+        if (moduleIds.length > 0) {
+            // Cria os placeholders (?) para a consulta IN (...)
+            const placeholders = moduleIds.map(() => '?').join(',');
             
-            // 2. Insere as novas assinaturas (se houver alguma)
-            if (numericModuleIds.length > 0) {
-                const subscriptionsToInsert = numericModuleIds.map(moduleId => ({
-                    company_id: numericCompanyId,
-                    module_id: moduleId
-                }));
-                
-                console.log(`[update-subscriptions] A inserir ${subscriptionsToInsert.length} novas assinaturas.`);
-                await tx`INSERT INTO subscriptions ${sql(subscriptionsToInsert, 'company_id', 'module_id')};`;
-            } else {
-                 console.log(`[update-subscriptions] Nenhum módulo selecionado. Apenas o DELETE foi executado.`);
+            const stmtGetKeys = db.prepare(`
+                SELECT key FROM modules WHERE id IN (${placeholders})
+            `);
+            
+            const { results } = await stmtGetKeys.bind(...moduleIds).all();
+            
+            if (results) {
+                moduleKeys = results.map(r => r.key);
             }
-        });
+        }
 
-        console.log(`[update-subscriptions] Sucesso para company_id: ${numericCompanyId}`);
-        return new Response(JSON.stringify({ success: true, message: 'Assinaturas atualizadas com sucesso!' }), {
+        // 2. Preparar a transação (Batch)
+        // Esta é a maneira mais segura de atualizar: apagar todos e recriar.
+        const stmts = [];
+
+        // 2a. Declaração de exclusão
+        stmts.push(
+            db.prepare('DELETE FROM company_modules WHERE company_id = ?').bind(companyId)
+        );
+
+        // 2b. Declarações de inserção (se houver chaves para inserir)
+        if (moduleKeys.length > 0) {
+            const insertStmt = db.prepare(
+                'INSERT INTO company_modules (company_id, module_key) VALUES (?, ?)'
+            );
+            moduleKeys.forEach(key => {
+                stmts.push(insertStmt.bind(companyId, key));
+            });
+        }
+
+        // 3. Executar a transação
+        await db.batch(stmts);
+
+        return new Response(JSON.stringify({ message: 'Vínculos atualizados com sucesso!' }), {
             status: 200,
             headers: { 'Content-Type': 'application/json' }
         });
 
     } catch (error) {
-        // LOGGING DE ERRO DETALHADO
-        console.error('[update-subscriptions] Erro catastrófico:', error.message, error.stack);
-        
-        return new Response(JSON.stringify({ 
-            error: 'Erro no servidor ao atualizar assinaturas.',
-            details: error.message 
-        }), {
+        console.error('Erro ao atualizar vínculos de módulos:', error);
+        return new Response(JSON.stringify({ error: 'Erro interno no servidor.', details: error.message }), { 
             status: 500,
             headers: { 'Content-Type': 'application/json' }
         });
     }
-};
+}
 
+/**
+ * Manipulador principal da Cloudflare Function
+ */
+export default async (context) => {
+    if (context.request.method === 'POST') {
+        return await handlePost(context);
+    }
+
+    return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { 
+        status: 405,
+        headers: { 'Content-Type': 'application/json' }
+    });
+};

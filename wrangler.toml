@@ -1,0 +1,70 @@
+// src/moduleManager.ts
+import { D1Database } from '@cloudflare/workers-types'; // typing only
+
+declare const D1: D1Database; // binding
+
+function normalizeName(s: string) {
+  return s.toLowerCase().replace(/[^a-z0-9_]/g, '_');
+}
+
+export async function ensureModuleForCompany(module_key: string, company_id: number, moduleConfig: any = {}) {
+  const key = normalizeName(module_key);
+  // 1) Insert or ignore in company_modules
+  await D1.prepare(`
+    INSERT OR IGNORE INTO company_modules (company_id, module_key, config, activated_at)
+    VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+  `).bind(company_id, key, JSON.stringify(moduleConfig)).run();
+
+  // 2) Determine table name
+  const tableName = `mod_${key}_company_${company_id}`;
+
+  // 3) Check if table exists
+  const existsRes = await D1.prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name = ?`).bind(tableName).all();
+  const exists = (existsRes.results?.length ?? 0) > 0;
+
+  if (!exists) {
+    // 4) Create table based on module_key (simple dispatcher)
+    if (key === 'pdv') {
+      await D1.prepare(`
+        CREATE TABLE IF NOT EXISTS ${tableName} (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          company_id INTEGER NOT NULL,
+          transaction_id INTEGER NOT NULL,
+          item_order INTEGER DEFAULT 0,
+          variant_id INTEGER NOT NULL,
+          qty INTEGER NOT NULL,
+          price_cents INTEGER NOT NULL,
+          discount_cents INTEGER DEFAULT 0,
+          tax_cents INTEGER DEFAULT 0,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `).run();
+    } else if (key === 'estoque' || key === 'controle_estoque') {
+      await D1.prepare(`
+        CREATE TABLE IF NOT EXISTS ${tableName} (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          company_id INTEGER NOT NULL,
+          location_id INTEGER NOT NULL,
+          variant_id INTEGER NOT NULL,
+          change INTEGER NOT NULL,
+          reason TEXT,
+          reference TEXT,
+          actor_user_id INTEGER,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `).run();
+    } else {
+      // generic fallback: simple key/value logs
+      await D1.prepare(`
+        CREATE TABLE IF NOT EXISTS ${tableName} (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          company_id INTEGER NOT NULL,
+          payload JSON,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `).run();
+    }
+  }
+
+  return { ok: true, table: tableName, created: !exists };
+}
