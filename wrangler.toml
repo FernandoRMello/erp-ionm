@@ -1,0 +1,13 @@
+name = "erp-ionm"
+compatibility_date = "2025-10-24"
+
+[build]
+command = ""
+upload.format = "modules"
+
+[site]
+bucket = "./dist"
+entry-point = "functions"
+
+[functions]
+directory = "./functions"
