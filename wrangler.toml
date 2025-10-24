@@ -1,4 +1,4 @@
-name = "erp-ionm"
+name = "ionm"
 main = "functions/_worker.js"
 compatibility_date = "2025-10-24"
 compatibility_flags = ["nodejs_compat"]
@@ -21,8 +21,8 @@ directory = "./functions"
 # =============================
 [[d1_databases]]
 binding = "D1_DATABASE"               # Nome usado nas funções (context.env.D1_DATABASE)
-database_name = "erp_ionm_db"         # Nome lógico do banco no Cloudflare
-database_id = "coloque-o-id-do-banco" # Substituir pelo ID do D1 (ex: d1-abc123xyz)
+database_name = "ionm-db"         # Nome lógico do banco no Cloudflare
+database_id = "ef6f1eb0-b1af-4fde-a4eb-0b27eb4308d7" # Substituir pelo ID do D1 (ex: d1-abc123xyz)
 
 # =============================
 # CONFIGURAÇÃO DE ROTAS
@@ -30,9 +30,10 @@ database_id = "coloque-o-id-do-banco" # Substituir pelo ID do D1 (ex: d1-abc123x
 # Cada arquivo .mjs dentro de /functions/api será publicado automaticamente em /api/<nome-do-arquivo>
 # Exemplo:
 # /functions/api/login-user.mjs  ->  https://seu-site.com/api/login-user
-# /functions/api/health.mjs      ->  https://seu-site.com/api/health
+# /functions/api/health.mjs      ->  https://ionm.pages.dev/api/health
 #
 # Caso queira definir rotas personalizadas, descomente e edite abaixo:
 # [routes]
 # pattern = "https://erp-ionm.pages.dev/api/*"
 # zone_id = "coloque-seu-zone-id"
+pages_build_output_dir = "./"
