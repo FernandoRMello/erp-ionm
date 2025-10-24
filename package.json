@@ -1,8 +1,0 @@
-{
-  "name": "ionm-erp-functions",
-  "version": "1.0.0",
-  "dependencies": {
-    "@netlify/functions": "^2.0.0",
-    "@netlify/neon": "^0.1.0"
-  }
-}
